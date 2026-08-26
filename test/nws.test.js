@@ -49,6 +49,27 @@ test('resolveGridpointUrl resolves through the points endpoint once, then caches
     assert.equal(calls.length, 1, 'the station never moves, so /points must not be re-resolved')
 })
 
+test('resolveGridpointUrl throws when the points response has no gridpoint URL', async () => {
+    const client = createNwsClient({
+        cache: noopCache(),
+        fetch: async () => ({ json: async () => ({ properties: {} }), ok: true, status: 200 }),
+    })
+    await assert.rejects(() => client.resolveGridpointUrl({ lat: 40.68, lon: -74.17 }), /forecastGridData/)
+})
+
+test('resolveGridpointUrl throws on a points response with no properties', async () => {
+    const client = createNwsClient({ cache: noopCache(), fetch: async () => ({ json: async () => ({}), ok: true, status: 200 }) })
+    await assert.rejects(() => client.resolveGridpointUrl({ lat: 40.68, lon: -74.17 }), /forecastGridData/)
+})
+
+test('a malformed points response is not cached', async () => {
+    // The gridpoint entry has no TTL, so caching a bad value would never expire.
+    const cache = noopCache()
+    const client = createNwsClient({ cache, fetch: async () => ({ json: async () => ({ properties: {} }), ok: true, status: 200 }) })
+    await assert.rejects(() => client.resolveGridpointUrl({ lat: 40.68, lon: -74.17 }))
+    assert.equal(await cache.read({ key: 'gridpoint:40.68,-74.17' }), undefined)
+})
+
 test('a non-ok response throws rather than yielding undefined', async () => {
     const client = createNwsClient({
         cache: noopCache(),

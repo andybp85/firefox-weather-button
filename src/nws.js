@@ -25,8 +25,13 @@ export const createNwsClient = ({ cache, fetch }) => {
         const cached = await cache.read({ key })
         if (cached !== undefined) return cached
 
-        const point = await getJson(fetch, `${NWS_POINTS_URL}/${lat},${lon}`)
-        const url = point.properties.forecastGridData
+        const pointUrl = `${NWS_POINTS_URL}/${lat},${lon}`
+        const point = await getJson(fetch, pointUrl)
+        const url = point?.properties?.forecastGridData
+        // A no-TTL cache write means a malformed response would otherwise poison this entry
+        // permanently, silently dropping the thunder row on every later open.
+        if (url === undefined) throw new Error(`${pointUrl} returned no forecastGridData`)
+
         await cache.write({ key, value: url })
         return url
     }
