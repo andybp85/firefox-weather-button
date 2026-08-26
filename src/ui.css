@@ -103,3 +103,121 @@ body {
         min-height: 1.2em;
     }
 }
+
+/* .popup is the toolbar action's single window mesa. Sections are plain direct children so
+   the adjacent-sibling rule below can hairline every boundary without a :first-child exception. */
+.popup {
+    background: var(--panel);
+    border-radius: 12px;
+    overflow: hidden;
+    width: 19rem;
+
+    > * {
+        margin: 0;
+        padding: 0.75rem 1rem;
+    }
+
+    /* --cloud is a rule/dash color, never text — see palette.md — so it only ever
+       appears as this hairline, matching the ASCII layout's +---+ section dividers. */
+    > * + * {
+        border-top: 1px solid var(--cloud);
+    }
+}
+
+#ambient {
+    .ambient-clouds {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+    }
+
+    /* The one hot element this view spends its accent ration on (see kit-developer-edition's
+       "ration the orange"): the headline ambient reading, filled rather than colored text —
+       --accent text alone fails AA in the light scheme (2.6:1), so it takes --on-hot on a fill. */
+    .ambient-primary {
+        background: var(--accent);
+        border-radius: 10px;
+        color: var(--on-hot);
+        font: 1.05rem var(--font-display);
+        font-variant-numeric: tabular-nums;
+        padding: 0.4rem 0.6rem;
+    }
+}
+
+.detail {
+    .dewpoint {
+        align-items: baseline;
+        display: flex;
+        gap: 0.4rem;
+
+        .label {
+            color: var(--muted);
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+    }
+
+    #pressure {
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        margin-top: 0.35rem;
+    }
+}
+
+.secondary {
+    #cloud-base {
+        color: var(--ink);
+        margin-bottom: 0.6rem;
+    }
+
+    #thunder {
+        /* Page order: the label paragraph, then the bar strip, then the bars it holds. */
+        .thunder-label {
+            color: var(--muted);
+            font-size: 0.6rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+        }
+
+        .thunder-bars {
+            align-items: flex-end;
+            display: flex;
+            gap: 0.2rem;
+            height: 2.5rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .thunder-bar {
+            background: var(--raised);
+            border-radius: 3px 3px 0 0;
+            flex: 1;
+            height: calc(var(--percent) * 1%);
+            /* A genuine 0% reading still reads as a bar, not a gap in the strip. */
+            min-height: 2px;
+        }
+    }
+}
+
+/* #age and #provenance are permanent, not decorative — the design's substitute for de-tiding
+   the pressure trend (see the Task 9 brief). --tile is the ground here rather than the panel
+   above: --muted text fails AA on --panel (3.6:1, see palette.md) but clears it on --tile. */
+.footer {
+    background: var(--tile);
+    border-radius: 0 0 12px 12px;
+
+    #age,
+    #provenance {
+        color: var(--muted);
+        font-size: 0.75rem;
+    }
+
+    #provenance {
+        margin-top: 0.2rem;
+    }
+}

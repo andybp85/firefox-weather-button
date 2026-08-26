@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+        <title>Weather Button</title>
+        <link href="/src/ui.css" rel="stylesheet" />
+    </head>
+    <body>
+        <main class="popup">
+            <section id="ambient">
+                <p class="ambient-primary"></p>
+                <p class="ambient-clouds"></p>
+            </section>
+            <section class="detail">
+                <p class="dewpoint"><span class="label">Dewpoint</span> <span id="dewpoint"></span></p>
+                <p id="pressure"></p>
+            </section>
+            <section class="secondary">
+                <p id="cloud-base"></p>
+                <div id="thunder">
+                    <p class="thunder-label">Thunder</p>
+                    <ol class="thunder-bars"></ol>
+                </div>
+            </section>
+            <footer class="footer">
+                <p id="age"></p>
+                <p id="provenance"></p>
+            </footer>
+        </main>
+        <script src="/src/popup-main.js" type="module"></script>
+    </body>
+</html>

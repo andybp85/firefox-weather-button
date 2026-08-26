@@ -1,1 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#5b6ee1" /></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+    <!-- Kit Developer Edition's "wobble-ring sun" ornament (references/ornament.md), reproduced
+         verbatim — colors are fixed rather than tokenized so the mark reads the same on both
+         schemes and in the browser toolbar, which has no light-dark() of its own. -->
+    <g fill="#4A55A8">
+        <path d="M60 2 L68 38 L52 38 Z" />
+        <path d="M118 60 L82 68 L82 52 Z" />
+        <path d="M60 118 L52 82 L68 82 Z" />
+        <path d="M2 60 L38 52 L38 68 Z" />
+        <path d="M101 19 L79 49 L68 38 Z" />
+        <path d="M101 101 L71 79 L82 68 Z" />
+        <path d="M19 101 L41 71 L52 82 Z" />
+        <path d="M19 19 L49 41 L38 52 Z" />
+    </g>
+    <circle cx="60" cy="60" r="42" fill="#2E3A8C" />
+    <circle cx="60" cy="60" r="33" fill="#4A55A8" />
+    <circle cx="60" cy="60" r="25" fill="#6D77C4" />
+    <circle cx="60" cy="60" r="18" fill="#9AA2DF" />
+    <circle cx="60" cy="60" r="12" fill="#FFC300" />
+    <circle cx="60" cy="60" r="7" fill="#FF8A1E" />
+</svg>
