@@ -166,7 +166,7 @@ Ambient conditions lead; the enthusiast numbers follow.
 |  DEWPOINT   58F                 |  lead detail
 |  1019.1 hPa   ^ +1.5 / 3h       |  pressure + arrow + magnitude
 +---------------------------------+
-|  Cloud base ~ 2990 ft           |  LCL, computed locally
+|  Cloud base ~ 2994 ft           |  LCL, computed locally
 |  Thunder  .,:=#=:,  next 12h    |  probabilityOfThunder, CSS bars
 +---------------------------------+
 |  Newark Intl - obs 6m ago       |  age, always visible
@@ -203,7 +203,7 @@ consistency check; a large divergence means the cloud deck is not
 surface-based.
 
 Worked example, from the KEWR fixture: `temp: 21.7`, `dewp: 14.4` gives a
-7.3 C spread, so LCL = 125 * 7.3 = 912 m = 2990 ft, displayed as 71F / 58F.
+7.3 C spread, so LCL = 125 * 7.3 = 912 m = 2994 ft, displayed as 71F / 58F.
 
 ## Error handling
 
