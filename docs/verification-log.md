@@ -98,3 +98,20 @@ Empty `browser.storage.local`, every `fetch` call throwing. Rendered output:
 `#age` and `#provenance` still render — the footer requirement holds even on this path, which the
 task brief's given Step 7 sketch didn't explicitly cover but the controller amendment ("every code
 path, including error ... paths") requires.
+
+## Task 10 — final gate, 2026-08-26
+
+Ran the full gate before the 0.1.0 documentation commit:
+
+```bash
+npm test              # 65 pass, 0 fail
+npm run format:check  # oxfmt --check src test: all matched files use the correct format
+npm run lint:js        # oxlint: 0 errors, 0 warnings
+npm run lint           # web-ext lint: 0 errors, 0 warnings, 0 notices
+```
+
+**Real-Firefox gap, unresolved.** This session, like Task 9's, has no Firefox binary and no
+display. The popup has still never been rendered in an actual Firefox window. The Task 9 entry
+above remains the closest available substitute — a live jsdom-driven run against the real NWS
+APIs — and the README now states this limitation plainly rather than implying browser testing
+took place.
