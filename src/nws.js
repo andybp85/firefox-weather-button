@@ -17,7 +17,12 @@ export const createNwsClient = ({ cache, fetch }) => {
         // station.js destructures the first observation and depends on this throw, because
         // AWC signals an unknown station with an empty array rather than an error status.
         if (observations.length === 0) throw new Error(`no observations for station ${stationId}`)
-        return observations
+
+        // Parse, don't validate: station.js, popup-main.js, and tendency.js all read
+        // observations[0] as "the newest" and walk the series from there. AWC happens to
+        // answer newest-first, but its contract does not promise it, so the ordering is
+        // established once here at the boundary rather than assumed three modules downstream.
+        return [...observations].sort((a, b) => Date.parse(b.reportTime) - Date.parse(a.reportTime))
     }
 
     // A configured station never moves, so its gridpoint never changes. Cache the

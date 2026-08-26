@@ -17,6 +17,7 @@ const signsConflict = (a, b) => a !== 0 && b !== 0 && Math.sign(a) !== Math.sign
 
 // Returns undefined rather than throwing when the series is too short: this is an
 // optional fallback, not an essential value, and resolveTendency decides what to do.
+// Assumes the series is newest-first; nws.js sorts it there so this need not re-derive it.
 const computeFromSeries = observations => {
     const newest = observations[0]
     const baseline = observations.find(observation => hoursBetween(observation, newest) >= TENDENCY_WINDOW_HOURS)

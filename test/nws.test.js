@@ -77,3 +77,22 @@ test('a non-ok response throws rather than yielding undefined', async () => {
     })
     await assert.rejects(() => client.fetchObservations('KEWR'), /503/)
 })
+
+// station.js, popup-main.js, and tendency.js all read observations[0] as "the newest". AWC
+// answers newest-first today, but nothing in its contract says it must, so the ordering is
+// established here at the boundary rather than assumed three modules downstream.
+test('fetchObservations returns the series newest-first regardless of the order AWC sent', async () => {
+    const scrambled = [
+        { reportTime: '2026-08-26T11:00:00.000Z', slp: 1018.6 },
+        { reportTime: '2026-08-26T14:00:00.000Z', slp: 1018.9 },
+        { reportTime: '2026-08-26T12:00:00.000Z', slp: 1019.1 },
+    ]
+    const { fetch } = recordingFetch([scrambled])
+    const client = createNwsClient({ cache: noopCache(), fetch })
+
+    const observations = await client.fetchObservations('KEWR')
+    assert.deepEqual(
+        observations.map(observation => observation.reportTime),
+        ['2026-08-26T14:00:00.000Z', '2026-08-26T12:00:00.000Z', '2026-08-26T11:00:00.000Z'],
+    )
+})

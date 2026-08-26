@@ -14,6 +14,8 @@ const THUNDER_HOURS = 12
 // the entry's implicit staleness is noticed, since createCache's keys are otherwise bare.
 const observationsCacheKey = stationId => `observations:${stationId}`
 
+// observations[0] is the newest reading because nws.js sorts the series newest-first at
+// the boundary; this module never re-derives that ordering.
 const buildModel = ({ observations, thunder }) => ({
     observation: toViewModel(observations[0]),
     tendency: resolveTendency(observations),
