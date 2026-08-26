@@ -1,0 +1,22 @@
+{
+    "name": "firefox-weather-button",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Firefox toolbar button showing dewpoint, barometric pressure trend, and thunder probability from NWS",
+    "type": "module",
+    "scripts": {
+        "test": "node --test test/*.test.js",
+        "start": "web-ext run --source-dir . --ignore-files \"node_modules/**\" \"docs/**\"",
+        "lint": "web-ext lint --source-dir . --ignore-files \"node_modules/**\" \"test/**\" \"docs/**\"",
+        "build": "web-ext build --source-dir . --overwrite-dest --ignore-files \"node_modules/**\" \"test/**\" \"docs/**\"",
+        "format": "oxfmt src test",
+        "format:check": "oxfmt --check src test",
+        "lint:js": "oxlint"
+    },
+    "devDependencies": {
+        "jsdom": "^26.1.0",
+        "oxfmt": "0.63.0",
+        "oxlint": "1.78.0",
+        "web-ext": "^8.5.0"
+    }
+}

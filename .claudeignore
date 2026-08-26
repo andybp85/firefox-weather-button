@@ -1,5 +1,4 @@
 node_modules/
 web-ext-artifacts/
+coverage/
 *.xpi
-.DS_Store
-.superpowers/
