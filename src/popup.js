@@ -23,10 +23,10 @@ const write = ({ document, selector, text }) => {
     document.querySelector(selector).textContent = text
 }
 
-const describeAge = ({ now, observedAt }) => {
+const describeElapsed = ({ now, observedAt }) => {
     const minutes = Math.round((now - Date.parse(observedAt)) / MILLISECONDS_PER_MINUTE)
-    if (minutes < 60) return `obs ${minutes}m ago`
-    return `obs ${Math.round(minutes / 60)}h ago`
+    if (minutes < 60) return `${minutes}m ago`
+    return `${Math.round(minutes / 60)}h ago`
 }
 
 // A reported or computed tendency already carries its sign for a fall (e.g. -1.2); only
@@ -43,6 +43,14 @@ const describeTrend = tendency => `${ARROWS[tendency.direction]} ${describeHpaDe
 // AWC reports unlimited/unmeasured visibility as the string 'unreported' (see observation.js);
 // appending "mi" to that reads as a bogus unit on a non-quantity, so the unit is dropped instead.
 const describeVisibility = visibility => (visibility === 'unreported' ? visibility : `${visibility} mi`)
+
+// The tendency's window can close well before the newest observation: a reported value comes
+// from the 3-hourly synoptic METAR, which nws.js's 5-hour fetch can trail by more than the
+// window is long. The design deliberately does not correct the trend for the semidiurnal tide;
+// disclosing when the window actually closed is what it offers in place of that correction, so
+// the age belongs beside the provenance rather than being inferred from the observation's.
+const describeProvenance = ({ now, tendency }) =>
+    `tendency: ${tendency.provenance} (${describeWindowHours(tendency)}h), ended ${describeElapsed({ now, observedAt: tendency.observedAt })}`
 
 // SPECI reports omit sea-level pressure, and a SPECI can be the newest observation. The
 // trend still resolves because it comes from the series, not the newest record alone, so
@@ -65,7 +73,12 @@ const renderThunderBars = ({ document, thunder }) => {
     document.querySelector(SELECTORS.thunderBars).replaceChildren(...bars)
 }
 
-export const render = ({ document, model, now = Date.now() }) => {
+export const render = ({ document, model, now }) => {
+    // now is required rather than defaulted to Date.now(), exactly as thunderSeries requires
+    // it: a default keeps this module impure and, worse, silently dates the footer from a
+    // clock the caller never chose. Every age in the popup must come from one pinned instant.
+    if (now === undefined) throw new Error('render requires now')
+
     const { observation, tendency, thunder } = model
 
     write({
@@ -80,9 +93,9 @@ export const render = ({ document, model, now = Date.now() }) => {
     write({
         document,
         selector: SELECTORS.age,
-        text: `${observation.stationName} - ${describeAge({ now, observedAt: observation.observedAt })}`,
+        text: `${observation.stationName} - obs ${describeElapsed({ now, observedAt: observation.observedAt })}`,
     })
-    write({ document, selector: SELECTORS.provenance, text: `tendency: ${tendency.provenance} (${describeWindowHours(tendency)}h)` })
+    write({ document, selector: SELECTORS.provenance, text: describeProvenance({ now, tendency }) })
 
     renderThunderBars({ document, thunder })
     document.querySelector(SELECTORS.thunder).hidden = thunder.length === 0
