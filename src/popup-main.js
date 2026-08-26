@@ -15,13 +15,13 @@ const PLACEHOLDER = '—'
 // the entry's implicit staleness is noticed, since createCache's keys are otherwise bare.
 const observationsCacheKey = stationId => `observations:${stationId}`
 
-const buildModel = ({ gridpoint, observations }) => ({
+const buildModel = ({ gridpoint, now, observations }) => ({
     observation: toViewModel(observations[0]),
     tendency: resolveTendency(observations),
-    thunder: thunderSeries({ gridpoint, hours: THUNDER_HOURS }),
+    thunder: thunderSeries({ gridpoint, hours: THUNDER_HOURS, now }),
 })
 
-const fetchFreshModel = async ({ cache, client, stationId }) => {
+const fetchFreshModel = async ({ cache, client, now, stationId }) => {
     const observations = await client.fetchObservations(stationId)
     await cache.write({ key: observationsCacheKey(stationId), value: observations })
 
@@ -29,26 +29,26 @@ const fetchFreshModel = async ({ cache, client, stationId }) => {
     const gridpointUrl = await client.resolveGridpointUrl({ lat, lon })
     const gridpoint = await client.fetchGridpoint(gridpointUrl)
 
-    return buildModel({ gridpoint, observations })
+    return buildModel({ gridpoint, now, observations })
 }
 
 // No gridpoint is cached alongside the observation series — nws.js caches only the /points
 // URL resolution, not a forecast fetch — so a degraded render always drops the thunder row.
 // That matches Task 5's rule to omit it rather than draw a stale or zeroed strip.
-const fetchCachedModel = async ({ cache, stationId }) => {
+const fetchCachedModel = async ({ cache, now, stationId }) => {
     const observations = await cache.read({ key: observationsCacheKey(stationId) })
     if (observations === undefined) throw new Error(`no cached observations for station ${stationId}`)
-    return buildModel({ gridpoint: { properties: {} }, observations })
+    return buildModel({ gridpoint: { properties: {} }, now, observations })
 }
 
-const resolveModel = async ({ cache, client, stationId }) => {
+const resolveModel = async ({ cache, client, now, stationId }) => {
     try {
-        return await fetchFreshModel({ cache, client, stationId })
+        return await fetchFreshModel({ cache, client, now, stationId })
     } catch {
         // Broad on purpose: a network error, an HTTP failure, and toViewModel throwing on a
         // temp/dewp-less newest record are all handled the same way — fall back to the cached
         // series with its real age rather than an error page (Task 9 brief's degraded path).
-        return await fetchCachedModel({ cache, stationId })
+        return await fetchCachedModel({ cache, now, stationId })
     }
 }
 
@@ -80,7 +80,8 @@ const main = async () => {
     const client = createNwsClient({ cache, fetch })
 
     try {
-        render({ document, model: await resolveModel({ cache, client, stationId: station.stationId }) })
+        const model = await resolveModel({ cache, client, now: Date.now(), stationId: station.stationId })
+        render({ document, model })
     } catch (error) {
         renderUnavailable({ document, reason: error.message })
     }

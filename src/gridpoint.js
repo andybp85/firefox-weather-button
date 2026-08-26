@@ -20,13 +20,19 @@ export const durationHours = duration => {
     return Number(days ?? 0) * HOURS_PER_DAY + Number(hours ?? 0)
 }
 
-export const thunderSeries = ({ gridpoint, hours }) => {
+// now is injected rather than read from Date.now() so this stays pure and testable against
+// a pinned clock; callers (popup-main.js) pass the real wall clock.
+export const thunderSeries = ({ gridpoint, hours, now }) => {
     const blocks = gridpoint.properties?.probabilityOfThunder?.values ?? []
 
-    return blocks
-        .flatMap(({ validTime, value }) => {
-            const [startsAt, duration] = validTime.split('/')
-            return offsets(durationHours(duration)).map(offset => ({ hour: addHours(startsAt, offset), percent: value }))
-        })
-        .slice(0, hours)
+    const hourly = blocks.flatMap(({ validTime, value }) => {
+        const [startsAt, duration] = validTime.split('/')
+        return offsets(durationHours(duration)).map(offset => ({ hour: addHours(startsAt, offset), percent: value }))
+    })
+
+    // A bare .slice(0, hours) took the first N hours of the forecast array regardless of
+    // whether they were already in the past — a popup opened mid-afternoon showed a strip
+    // that started at midnight. Drop anything whose hour bucket has fully elapsed first; a
+    // bucket covering now (its end is still after now) is kept, not dropped.
+    return hourly.filter(entry => Date.parse(entry.hour) + MILLISECONDS_PER_HOUR > now).slice(0, hours)
 }
