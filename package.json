@@ -8,7 +8,7 @@
         "test": "node --test test/*.test.js",
         "start": "web-ext run --source-dir . --ignore-files \"node_modules/**\" \"docs/**\"",
         "lint": "web-ext lint --source-dir . --ignore-files \"node_modules/**\" \"test/**\" \"docs/**\"",
-        "build": "web-ext build --source-dir . --overwrite-dest --ignore-files \"node_modules/**\" \"test/**\" \"docs/**\"",
+        "build": "web-ext build --source-dir . --overwrite-dest --ignore-files \"node_modules/**\" \"test/**\" \"docs/**\" \"package*.json\" \"*.md\"",
         "format": "oxfmt src test",
         "format:check": "oxfmt --check src test",
         "lint:js": "oxlint"
