@@ -2,7 +2,7 @@
     "rules": {
         "curly": ["error", "multi"],
         "no-console": ["error", { "allow": ["warn", "error"] }],
-        "no-unused-vars": "error",
+        "no-unused-vars": ["error", { "ignoreRestSiblings": true }],
         "no-var": "error",
         "prefer-const": "error",
         "typescript/no-explicit-any": "error"
