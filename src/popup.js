@@ -1,6 +1,27 @@
 const ARROWS = { falling: '↓', rising: '↑', steady: '→' }
 const HOUR_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
 const MILLISECONDS_PER_MINUTE = 60_000
+const PLACEHOLDER = '—'
+
+// The one place every element id popup.html carries is spelled out — render() and
+// renderUnavailable() both write through this, rather than each holding its own copy of the
+// selector strings, so a rename can't silently desync the two (renderUnavailable previously
+// lived in popup-main.js with its own hand-copied selectors, untested and unenforced).
+const SELECTORS = {
+    ambientClouds: '.ambient-clouds',
+    ambientPrimary: '.ambient-primary',
+    age: '#age',
+    cloudBase: '#cloud-base',
+    dewpoint: '#dewpoint',
+    pressure: '#pressure',
+    provenance: '#provenance',
+    thunder: '#thunder',
+    thunderBars: '.thunder-bars',
+}
+
+const write = ({ document, selector, text }) => {
+    document.querySelector(selector).textContent = text
+}
 
 const describeAge = ({ now, observedAt }) => {
     const minutes = Math.round((now - Date.parse(observedAt)) / MILLISECONDS_PER_MINUTE)
@@ -32,23 +53,42 @@ const buildThunderBar = ({ document, hour, percent }) => {
 
 const renderThunderBars = ({ document, thunder }) => {
     const bars = thunder.map(({ hour, percent }) => buildThunderBar({ document, hour, percent }))
-    document.querySelector('.thunder-bars').replaceChildren(...bars)
+    document.querySelector(SELECTORS.thunderBars).replaceChildren(...bars)
 }
 
 export const render = ({ document, model, now = Date.now() }) => {
     const { observation, tendency, thunder } = model
-    const write = (selector, text) => {
-        document.querySelector(selector).textContent = text
-    }
 
-    write('.ambient-primary', `${observation.temperatureFahrenheit}F   ${observation.wind}   ${observation.visibility} mi`)
-    write('.ambient-clouds', observation.clouds)
-    write('#dewpoint', `${observation.dewpointFahrenheit}F`)
-    write('#pressure', describePressure({ observation, tendency }))
-    write('#cloud-base', `Cloud base ~ ${observation.cloudBaseFeet} ft`)
-    write('#age', `${observation.stationName} - ${describeAge({ now, observedAt: observation.observedAt })}`)
-    write('#provenance', `tendency: ${tendency.provenance} (${tendency.windowHours}h)`)
+    write({
+        document,
+        selector: SELECTORS.ambientPrimary,
+        text: `${observation.temperatureFahrenheit}F   ${observation.wind}   ${observation.visibility} mi`,
+    })
+    write({ document, selector: SELECTORS.ambientClouds, text: observation.clouds })
+    write({ document, selector: SELECTORS.dewpoint, text: `${observation.dewpointFahrenheit}F` })
+    write({ document, selector: SELECTORS.pressure, text: describePressure({ observation, tendency }) })
+    write({ document, selector: SELECTORS.cloudBase, text: `Cloud base ~ ${observation.cloudBaseFeet} ft` })
+    write({
+        document,
+        selector: SELECTORS.age,
+        text: `${observation.stationName} - ${describeAge({ now, observedAt: observation.observedAt })}`,
+    })
+    write({ document, selector: SELECTORS.provenance, text: `tendency: ${tendency.provenance} (${tendency.windowHours}h)` })
 
     renderThunderBars({ document, thunder })
-    document.querySelector('#thunder').hidden = thunder.length === 0
+    document.querySelector(SELECTORS.thunder).hidden = thunder.length === 0
+}
+
+// The footer is a requirement on every code path, including this one: a user who has never
+// successfully loaded data still sees why, rather than a blank popup. Shares SELECTORS with
+// render() above so the two can't drift — see the comment on SELECTORS for why that matters.
+export const renderUnavailable = ({ document, reason }) => {
+    write({ document, selector: SELECTORS.ambientPrimary, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.ambientClouds, text: '' })
+    write({ document, selector: SELECTORS.dewpoint, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.pressure, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.cloudBase, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.age, text: `no observation available — ${reason}` })
+    write({ document, selector: SELECTORS.provenance, text: 'tendency: unavailable' })
+    document.querySelector(SELECTORS.thunder).hidden = true
 }

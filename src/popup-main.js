@@ -1,6 +1,6 @@
 import { thunderSeries } from './gridpoint.js'
 import { toViewModel } from './observation.js'
-import { render } from './popup.js'
+import { render, renderUnavailable } from './popup.js'
 import { createNwsClient } from './nws.js'
 import { createCache } from './storage.js'
 import { resolveTendency } from './tendency.js'
@@ -8,7 +8,6 @@ import { resolveTendency } from './tendency.js'
 // A dozen hours is enough strip to read at a glance in a popup this narrow without the
 // bars becoming too thin to see; thunderSeries itself has no opinion on how many to ask for.
 const THUNDER_HOURS = 12
-const PLACEHOLDER = '—'
 
 // Every station-scoped cache entry is namespaced by station id: without this, switching
 // stations in the options page would keep serving the previous station's readings until
@@ -52,23 +51,6 @@ const resolveModel = async ({ cache, client, now, stationId }) => {
     }
 }
 
-// The footer is a requirement on every code path, including this one: a user who has never
-// successfully loaded data still sees why, rather than a blank popup.
-const renderUnavailable = ({ document, reason }) => {
-    const write = (selector, text) => {
-        document.querySelector(selector).textContent = text
-    }
-
-    write('.ambient-primary', PLACEHOLDER)
-    write('.ambient-clouds', '')
-    write('#dewpoint', PLACEHOLDER)
-    write('#pressure', PLACEHOLDER)
-    write('#cloud-base', PLACEHOLDER)
-    write('#age', `no observation available — ${reason}`)
-    write('#provenance', 'tendency: unavailable')
-    document.querySelector('#thunder').hidden = true
-}
-
 const main = async () => {
     const { station } = await browser.storage.local.get('station')
     if (station === undefined) {
@@ -78,13 +60,19 @@ const main = async () => {
 
     const cache = createCache({ now: Date.now, storage: browser.storage.local })
     const client = createNwsClient({ cache, fetch })
-
-    try {
-        const model = await resolveModel({ cache, client, now: Date.now(), stationId: station.stationId })
-        render({ document, model })
-    } catch (error) {
-        renderUnavailable({ document, reason: error.message })
-    }
+    const model = await resolveModel({ cache, client, now: Date.now(), stationId: station.stationId })
+    render({ document, model })
 }
 
-main()
+main().catch(error => {
+    // Terminal boundary: the storage read, resolveModel's own fresh/cached fallback, and
+    // render() itself can all still throw (a network error before any cache exists, or a
+    // markup rename breaking a selector) — this is what turns that into the "unavailable"
+    // footer instead of an unhandled rejection and a blank popup.
+    try {
+        renderUnavailable({ document, reason: error.message })
+    } catch {
+        // Deliberately silent: renderUnavailable failing here means even the placeholder
+        // render is broken, and there is nothing further left to fall back to.
+    }
+})

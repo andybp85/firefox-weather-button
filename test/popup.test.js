@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { JSDOM } from 'jsdom'
 import { test } from 'node:test'
-import { render } from '../src/popup.js'
+import { render, renderUnavailable } from '../src/popup.js'
 
 const popupDocument = () => new JSDOM(readFileSync(new URL('../src/popup.html', import.meta.url), 'utf8')).window.document
 
@@ -84,4 +84,22 @@ test('render pins the observation age to a fixed clock via the injected now', ()
     const now = Date.parse('2026-08-26T13:06:00.000Z')
     render({ document, model, now })
     assert.match(document.querySelector('#age').textContent, /6m ago/)
+})
+
+// renderUnavailable used to live only in popup-main.js, untested and hand-copying render()'s
+// selector strings — a rename would break it silently at the exact moment it's meant to be
+// the safety net. It's a second export of popup.js now, sharing SELECTORS with render().
+test('renderUnavailable still states the footer, with the reason in the age line', () => {
+    const document = popupDocument()
+    renderUnavailable({ document, reason: 'no station configured yet' })
+    assert.match(document.querySelector('#age').textContent, /no station configured yet/)
+    assert.match(document.querySelector('#provenance').textContent, /unavailable/)
+    assert.equal(document.querySelector('#thunder').hidden, true)
+})
+
+test('renderUnavailable never prints the literal string "undefined" in any field it writes', () => {
+    const document = popupDocument()
+    renderUnavailable({ document, reason: 'simulated network failure' })
+    for (const selector of ['#dewpoint', '#pressure', '#cloud-base', '#age', '#provenance'])
+        assert.doesNotMatch(document.querySelector(selector).textContent, /undefined/)
 })
