@@ -22,6 +22,10 @@ test('durationHours throws on an unsupported duration', () => {
     assert.throws(() => durationHours('PT30M'), /unsupported/)
 })
 
+test('durationHours throws on a duration with no components', () => {
+    assert.throws(() => durationHours('P'), /unsupported/)
+})
+
 test('thunderSeries expands variable-length blocks into one entry per hour', () => {
     const series = thunderSeries({ gridpoint: fixture('tbw-gridpoint'), hours: 12 })
     assert.equal(series.length, 12)

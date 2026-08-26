@@ -12,8 +12,12 @@ export const durationHours = duration => {
     const match = DURATION_PATTERN.exec(duration)
     if (match === null) throw new Error(`unsupported gridpoint duration: ${duration}`)
 
-    const [, days = '0', hours = '0'] = match
-    return Number(days) * HOURS_PER_DAY + Number(hours)
+    const [, days, hours] = match
+    // Both components are optional in the pattern, so a bare 'P' matches with neither.
+    // Returning 0 would silently drop a forecast block; ISO 8601 requires at least one.
+    if (days === undefined && hours === undefined) throw new Error(`unsupported gridpoint duration: ${duration}`)
+
+    return Number(days ?? 0) * HOURS_PER_DAY + Number(hours ?? 0)
 }
 
 export const thunderSeries = ({ gridpoint, hours }) => {
