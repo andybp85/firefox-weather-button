@@ -47,15 +47,19 @@ options: station ID (e.g. KEWR)
   +-- AWC  metar?ids={id}&format=json&hours=5
   |     -> temp, dewp, slp, presTend, wdir, wspd, visib, clouds, lat, lon, name
   |     |
-  |     +-- api.weather.gov /points/{lat},{lon}   -> gridpoint URL   [cached indefinitely]
+  |     +-- api.weather.gov /points/{lat},{lon}   -> gridpoint URL   [cached 30 days]
   |           |
   |           +-- gridpoint                       -> probabilityOfThunder
   |
   +-- LCL = 125 * (temp - dewp)                   [local, no fetch]
 ```
 
-Two requests on a warm cache. The `/points` resolution is cached
-indefinitely: the station does not move, so the gridpoint never changes.
+Zero requests on a warm cache: the observation series and the forecast are
+both held for 10 minutes, so a reopen inside that window spends nothing. The
+`/points` resolution is cached for 30 days rather than indefinitely — the
+station does not move, but NWS does occasionally re-grid, and an entry with no
+expiry would drop the thunder row permanently with no way for a user to clear
+it.
 
 ### Modules
 

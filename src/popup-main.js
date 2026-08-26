@@ -45,9 +45,15 @@ const fetchFreshModel = async ({ cache, client, now, stationId }) => {
     // The forecast is cached alongside the series so a cached open does not still spend two
     // requests on the thunder row — and so the row does not blink out on every reopen.
     const cachedGridpoint = await cache.read({ key: forecastKey, ttlMinutes: CACHE_TTL_MINUTES })
-    const gridpoint = cachedGridpoint ?? (await fetchGridpoint({ client, observations }))
 
-    const model = buildModel({ observations, thunder: thunderSeries({ gridpoint, hours: THUNDER_HOURS, now }) })
+    // api.weather.gov is the flakier of the two upstreams, and it only supplies the thunder
+    // row. Letting it throw here would discard the METAR series already fetched above and drop
+    // the user on the error page over a missing strip, so its failure degrades to Task 5's
+    // rule — omit the row — rather than failing the whole render.
+    const gridpoint = cachedGridpoint ?? (await fetchGridpoint({ client, observations }).catch(() => undefined))
+
+    const thunder = gridpoint === undefined ? [] : thunderSeries({ gridpoint, hours: THUNDER_HOURS, now })
+    const model = buildModel({ observations, thunder })
 
     // Written only once buildModel has proven the data renders. Writing the series the moment
     // it arrived overwrote the last good cache with the very records about to throw, so the
@@ -55,7 +61,7 @@ const fetchFreshModel = async ({ cache, client, now, stationId }) => {
     // reading it exists to preserve already destroyed. A cache hit is deliberately not
     // rewritten: refreshing writtenAt on every read would keep an entry alive forever.
     if (cachedObservations === undefined) await cache.write({ key: observationsKey, value: observations })
-    if (cachedGridpoint === undefined) await cache.write({ key: forecastKey, value: gridpoint })
+    if (cachedGridpoint === undefined && gridpoint !== undefined) await cache.write({ key: forecastKey, value: gridpoint })
 
     return model
 }

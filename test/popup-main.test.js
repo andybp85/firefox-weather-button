@@ -90,6 +90,23 @@ test('the popup renders a live series and caches it for the next open', async ()
     assert.equal(document.querySelector('#thunder').hidden, false)
 })
 
+// api.weather.gov supplies only the thunder row, and it is the flakier of the two upstreams.
+// Fixing the cache-ordering defect above moved the series write past the gridpoint fetch, so an
+// outage there briefly discarded a METAR series that had already arrived and put the user on the
+// error page over a missing strip. The forecast's failure must cost the row, not the reading.
+test('a forecast outage costs the thunder row, not the observation series', async () => {
+    const storage = fakeStorage({ station })
+    const observations = fixture('kewr-rising')
+    const { fetch } = stubFetch({ 'https://aviationweather.gov': observations })
+
+    const document = await runPopup({ fetch, storage })
+
+    assert.match(document.querySelector('#dewpoint').textContent, /58F/)
+    assert.equal(document.querySelector('#thunder').hidden, true, 'no forecast means no thunder row')
+    assert.deepEqual(storage.records['observations:KEWR'].value, observations, 'the series must still be cached')
+    assert.equal(storage.records['forecast:KEWR'], undefined, 'a forecast that never arrived must not be cached')
+})
+
 // The cache write used to happen the moment the series arrived, before buildModel had a say.
 // A newest record that toViewModel rejects then overwrote the last good series with the very
 // records about to throw, so the degraded path read them back, threw again, and put the user
