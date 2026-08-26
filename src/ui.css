@@ -31,17 +31,20 @@ body {
     color: var(--ink);
     font-family: var(--font-body);
     margin: 0;
-    padding: 2rem;
 }
 
-/* .options is the page's single window mesa — the main content slab per the token roles. */
+/* .options is the page's single window mesa — the main content slab per the token roles.
+   The 2rem gutter around it is this page's own now (margin, not body padding) — it lived
+   on `body` briefly, but that also reached .popup (a fixed-width, edge-to-edge panel) and
+   left ~64px of dead padding around a browser action popup that should size tightly to
+   its content. */
 .options {
     background: var(--panel);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    margin-inline: auto;
+    margin: 2rem auto;
     max-width: 24rem;
     padding: 1.5rem;
 
@@ -125,11 +128,7 @@ body {
 }
 
 #ambient {
-    .ambient-clouds {
-        color: var(--muted);
-        font-size: 0.8rem;
-        margin-top: 0.3rem;
-    }
+    /* Page order: the headline reading, then the clouds line beneath it. */
 
     /* The one hot element this view spends its accent ration on (see kit-developer-edition's
        "ration the orange"): the headline ambient reading, filled rather than colored text —
@@ -141,6 +140,12 @@ body {
         font: 1.05rem var(--font-display);
         font-variant-numeric: tabular-nums;
         padding: 0.4rem 0.6rem;
+    }
+
+    .ambient-clouds {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
     }
 }
 

@@ -1,7 +1,7 @@
 import { thunderSeries } from './gridpoint.js'
+import { createNwsClient } from './nws.js'
 import { toViewModel } from './observation.js'
 import { render, renderUnavailable } from './popup.js'
-import { createNwsClient } from './nws.js'
 import { createCache } from './storage.js'
 import { resolveTendency } from './tendency.js'
 
@@ -14,10 +14,10 @@ const THUNDER_HOURS = 12
 // the entry's implicit staleness is noticed, since createCache's keys are otherwise bare.
 const observationsCacheKey = stationId => `observations:${stationId}`
 
-const buildModel = ({ gridpoint, now, observations }) => ({
+const buildModel = ({ observations, thunder }) => ({
     observation: toViewModel(observations[0]),
     tendency: resolveTendency(observations),
-    thunder: thunderSeries({ gridpoint, hours: THUNDER_HOURS, now }),
+    thunder,
 })
 
 const fetchFreshModel = async ({ cache, client, now, stationId }) => {
@@ -27,17 +27,20 @@ const fetchFreshModel = async ({ cache, client, now, stationId }) => {
     const [{ lat, lon }] = observations
     const gridpointUrl = await client.resolveGridpointUrl({ lat, lon })
     const gridpoint = await client.fetchGridpoint(gridpointUrl)
+    const thunder = thunderSeries({ gridpoint, hours: THUNDER_HOURS, now })
 
-    return buildModel({ gridpoint, now, observations })
+    return buildModel({ observations, thunder })
 }
 
 // No gridpoint is cached alongside the observation series — nws.js caches only the /points
 // URL resolution, not a forecast fetch — so a degraded render always drops the thunder row.
-// That matches Task 5's rule to omit it rather than draw a stale or zeroed strip.
-const fetchCachedModel = async ({ cache, now, stationId }) => {
+// That matches Task 5's rule to omit it rather than draw a stale or zeroed strip. Passing the
+// empty series straight through, rather than fabricating a { properties: {} } gridpoint just
+// to make thunderSeries produce one, keeps this path from inventing a fake domain object.
+const fetchCachedModel = async ({ cache, stationId }) => {
     const observations = await cache.read({ key: observationsCacheKey(stationId) })
     if (observations === undefined) throw new Error(`no cached observations for station ${stationId}`)
-    return buildModel({ gridpoint: { properties: {} }, now, observations })
+    return buildModel({ observations, thunder: [] })
 }
 
 const resolveModel = async ({ cache, client, now, stationId }) => {
@@ -47,7 +50,7 @@ const resolveModel = async ({ cache, client, now, stationId }) => {
         // Broad on purpose: a network error, an HTTP failure, and toViewModel throwing on a
         // temp/dewp-less newest record are all handled the same way — fall back to the cached
         // series with its real age rather than an error page (Task 9 brief's degraded path).
-        return await fetchCachedModel({ cache, now, stationId })
+        return await fetchCachedModel({ cache, stationId })
     }
 }
 

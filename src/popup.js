@@ -33,7 +33,16 @@ const describeAge = ({ now, observedAt }) => {
 // the positive case is missing one. Steady is exactly 0 and prints bare either way.
 const describeHpaDelta = hPa => (hPa > 0 ? `+${hPa}` : `${hPa}`)
 
-const describeTrend = tendency => `${ARROWS[tendency.direction]} ${describeHpaDelta(tendency.hPa)} / ${tendency.windowHours}h`
+// windowHours is a display concern, not a domain one: resolveTendency's computed path rarely
+// lands on an exact hour boundary (e.g. 2.98), and that decimal has no place in text meant to
+// read as "3h" — round here rather than adding a defensive branch to tendency.js for it.
+const describeWindowHours = tendency => Math.round(tendency.windowHours)
+
+const describeTrend = tendency => `${ARROWS[tendency.direction]} ${describeHpaDelta(tendency.hPa)} / ${describeWindowHours(tendency)}h`
+
+// AWC reports unlimited/unmeasured visibility as the string 'unreported' (see observation.js);
+// appending "mi" to that reads as a bogus unit on a non-quantity, so the unit is dropped instead.
+const describeVisibility = visibility => (visibility === 'unreported' ? visibility : `${visibility} mi`)
 
 // SPECI reports omit sea-level pressure, and a SPECI can be the newest observation. The
 // trend still resolves because it comes from the series, not the newest record alone, so
@@ -62,7 +71,7 @@ export const render = ({ document, model, now = Date.now() }) => {
     write({
         document,
         selector: SELECTORS.ambientPrimary,
-        text: `${observation.temperatureFahrenheit}F   ${observation.wind}   ${observation.visibility} mi`,
+        text: `${observation.temperatureFahrenheit}F   ${observation.wind}   ${describeVisibility(observation.visibility)}`,
     })
     write({ document, selector: SELECTORS.ambientClouds, text: observation.clouds })
     write({ document, selector: SELECTORS.dewpoint, text: `${observation.dewpointFahrenheit}F` })
@@ -73,7 +82,7 @@ export const render = ({ document, model, now = Date.now() }) => {
         selector: SELECTORS.age,
         text: `${observation.stationName} - ${describeAge({ now, observedAt: observation.observedAt })}`,
     })
-    write({ document, selector: SELECTORS.provenance, text: `tendency: ${tendency.provenance} (${tendency.windowHours}h)` })
+    write({ document, selector: SELECTORS.provenance, text: `tendency: ${tendency.provenance} (${describeWindowHours(tendency)}h)` })
 
     renderThunderBars({ document, thunder })
     document.querySelector(SELECTORS.thunder).hidden = thunder.length === 0

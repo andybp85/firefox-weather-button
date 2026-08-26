@@ -103,3 +103,23 @@ test('renderUnavailable never prints the literal string "undefined" in any field
     for (const selector of ['#dewpoint', '#pressure', '#cloud-base', '#age', '#provenance'])
         assert.doesNotMatch(document.querySelector(selector).textContent, /undefined/)
 })
+
+// windowHours is interpolated straight into two lines of UI text; resolveTendency's computed
+// path can produce a value like 2.98 (the observation series rarely lands exactly on an hour
+// boundary), and that decimal has no place in a display string meant to read as "3h".
+test('render rounds a fractional windowHours for display', () => {
+    const document = popupDocument()
+    const fractional = { ...model, tendency: { ...model.tendency, provenance: 'computed', windowHours: 2.98 } }
+    render({ document, model: fractional })
+    assert.match(document.querySelector('#pressure').textContent, /3h/)
+    assert.match(document.querySelector('#provenance').textContent, /3h/)
+    assert.doesNotMatch(document.querySelector('#pressure').textContent, /2\.98/)
+    assert.doesNotMatch(document.querySelector('#provenance').textContent, /2\.98/)
+})
+
+test('render drops the unit rather than printing "unreported mi"', () => {
+    const document = popupDocument()
+    const noVisibility = { ...model, observation: { ...model.observation, visibility: 'unreported' } }
+    render({ document, model: noVisibility })
+    assert.doesNotMatch(document.querySelector('.ambient-primary').textContent, /unreported mi/)
+})
