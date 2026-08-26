@@ -29,7 +29,14 @@ test('toViewModel describes calm wind rather than printing a zero', () => {
 })
 
 test('toViewModel names a cardinal direction for the wind', () => {
+    // 350 deg is 10 deg from due north: N spans 348.75-11.25, so this is N, not NNW.
     const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 350, wspd: 7 })
+    assert.equal(view.wind, 'N 7 kt')
+})
+
+test('toViewModel rounds a mid-sector bearing to the nearest point', () => {
+    // 340 deg sits inside NNW's 326.25-348.75 span.
+    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 340, wspd: 7 })
     assert.equal(view.wind, 'NNW 7 kt')
 })
 
