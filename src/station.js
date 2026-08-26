@@ -1,3 +1,7 @@
+// Not a pure module: it reaches the network through the injected client, and belongs with
+// nws.js and storage.js on the I/O side of the seam. Only the client is injected, so the
+// tests never touch the network.
+//
 // A station id is user-typed and case-insensitive; normalise before it ever
 // reaches the client so a lowercase or padded id doesn't read as a different
 // station than its trimmed, uppercase form.

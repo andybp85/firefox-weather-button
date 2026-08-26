@@ -63,7 +63,7 @@ test('resolveGridpointUrl throws on a points response with no properties', async
 })
 
 test('a malformed points response is not cached', async () => {
-    // The gridpoint entry has no TTL, so caching a bad value would never expire.
+    // The gridpoint entry's TTL is a month, so a bad value would outlast any single session.
     const cache = noopCache()
     const client = createNwsClient({ cache, fetch: async () => ({ json: async () => ({ properties: {} }), ok: true, status: 200 }) })
     await assert.rejects(() => client.resolveGridpointUrl({ lat: 40.68, lon: -74.17 }))
@@ -95,4 +95,38 @@ test('fetchObservations returns the series newest-first regardless of the order 
         observations.map(observation => observation.reportTime),
         ['2026-08-26T14:00:00.000Z', '2026-08-26T12:00:00.000Z', '2026-08-26T11:00:00.000Z'],
     )
+})
+
+// A cache that answers as createCache would for an entry written `ageMinutes` ago.
+const cacheAged = ageMinutes => {
+    const entries = {}
+    return {
+        read: async ({ key, ttlMinutes }) => (ttlMinutes !== undefined && ageMinutes > ttlMinutes ? undefined : entries[key]),
+        write: async ({ key, value }) => {
+            entries[key] = value
+        },
+    }
+}
+
+test('a gridpoint URL resolved a day ago is still served from cache', async () => {
+    const point = { properties: { forecastGridData: 'https://api.weather.gov/gridpoints/OKX/32,42' } }
+    const { calls, fetch } = recordingFetch([point, point])
+    const client = createNwsClient({ cache: cacheAged(24 * 60), fetch })
+
+    await client.resolveGridpointUrl({ lat: 40.6828, lon: -74.1692 })
+    await client.resolveGridpointUrl({ lat: 40.6828, lon: -74.1692 })
+    assert.equal(calls.length, 1, 'the station does not move, so a day-old resolution is still good')
+})
+
+// The entry used to be written with no TTL at all. NWS does re-grid, and a permanent entry
+// then pointed at a dead gridpoint forever: the thunder row vanished with no error and no
+// user-reachable way to clear it. The TTL is long, but it is finite.
+test('a gridpoint URL eventually expires so an NWS re-grid can heal itself', async () => {
+    const point = { properties: { forecastGridData: 'https://api.weather.gov/gridpoints/OKX/32,42' } }
+    const { calls, fetch } = recordingFetch([point, point])
+    const client = createNwsClient({ cache: cacheAged(400 * 24 * 60), fetch })
+
+    await client.resolveGridpointUrl({ lat: 40.6828, lon: -74.1692 })
+    await client.resolveGridpointUrl({ lat: 40.6828, lon: -74.1692 })
+    assert.equal(calls.length, 2, 'a year-old gridpoint resolution must be re-resolved, not trusted forever')
 })

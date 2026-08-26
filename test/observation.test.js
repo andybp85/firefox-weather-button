@@ -94,3 +94,22 @@ test('toViewModel leaves pressure undefined when the report omits it', () => {
     const speci = fixture('kord-falling').find(o => o.metarType === 'SPECI')
     assert.equal(toViewModel(speci).pressureHpa, undefined)
 })
+
+// An omitted wspd is not a measurement of zero. Reporting "calm" for it asserts a reading
+// nobody took, which is the same class of claim as printing a cardinal for an absent wdir.
+test('toViewModel distinguishes an unreported wind from a calm one', () => {
+    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
+    assert.equal(view.wind, 'unreported')
+})
+
+test('toViewModel still reads an explicit zero speed as calm', () => {
+    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wspd: 0 })
+    assert.equal(view.wind, 'calm')
+})
+
+// The station id is always present and identifies the station; 'unknown station' identifies
+// nothing. station.js already falls back this way when AWC omits the name.
+test('toViewModel falls back to the station id when the record carries no name', () => {
+    const view = toViewModel({ dewp: 14.4, icaoId: 'KEWR', reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
+    assert.equal(view.stationName, 'KEWR')
+})

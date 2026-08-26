@@ -40,8 +40,9 @@ const describeWindowHours = tendency => Math.round(tendency.windowHours)
 
 const describeTrend = tendency => `${ARROWS[tendency.direction]} ${describeHpaDelta(tendency.hPa)} / ${describeWindowHours(tendency)}h`
 
-// AWC reports unlimited/unmeasured visibility as the string 'unreported' (see observation.js);
-// appending "mi" to that reads as a bogus unit on a non-quantity, so the unit is dropped instead.
+// AWC never sends a word here: it sends "10+" or a number, and omits visib when unmeasured.
+// 'unreported' is manufactured by observation.js's toViewModel for that omission (the coupling
+// is flagged there too). Appending "mi" to it reads as a bogus unit, so the unit is dropped.
 const describeVisibility = visibility => (visibility === 'unreported' ? visibility : `${visibility} mi`)
 
 // The tendency's window can close well before the newest observation: a reported value comes

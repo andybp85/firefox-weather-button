@@ -70,6 +70,7 @@ badge version additive.
 | `src/units.js` | C to F, metres to feet, pressure formatting | pure |
 | `src/gridpoint.js` | `probabilityOfThunder` extraction, ISO-8601 interval expansion | pure |
 | `src/observation.js` | Normalise one AWC record into the popup's view model | pure |
+| `src/station.js` | Normalise a typed station id and check it against the feed | I/O |
 | `src/nws.js` | Fetch chain: METAR -> points -> gridpoint | I/O |
 | `src/storage.js` | TTL cache over `browser.storage.local` | I/O |
 | `src/popup.{html,js}` | Render | shell |
