@@ -11,6 +11,10 @@ test('toViewModel converts temperature and dewpoint to Fahrenheit', () => {
     assert.equal(view.dewpointFahrenheit, 58)
 })
 
+test('toViewModel throws when the observation has no temperature', () => {
+    assert.throws(() => toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z' }), /temperature or dewpoint/)
+})
+
 test('toViewModel computes cloud base in feet from the spread', () => {
     const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
     // 125 * 7.3 = 912.5 m = 2994 ft
@@ -70,4 +74,10 @@ test('toViewModel renders the newest fixture observation', () => {
         visibility: '10+',
         wind: 'calm',
     })
+})
+
+test('toViewModel leaves pressure undefined when the report omits it', () => {
+    // SPECI reports are issued off-cycle and carry altim rather than slp.
+    const speci = fixture('kord-falling').find(o => o.metarType === 'SPECI')
+    assert.equal(toViewModel(speci).pressureHpa, undefined)
 })

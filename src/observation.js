@@ -14,12 +14,17 @@ const describeWind = ({ wdir, wspd }) => {
     return `${cardinal(wdir)} ${wspd} kt`
 }
 
-const describeCloudLayer = ({ base, cover }) => (base === undefined ? cover : `${cover} ${base} ft`)
+const describeCloudLayer = ({ base, cover }) => {
+    if (cover === undefined) return 'unreported'
+    return base === undefined ? cover : `${cover} ${base} ft`
+}
 
 const describeClouds = clouds => (clouds === undefined || clouds.length === 0 ? 'clear' : clouds.map(describeCloudLayer).join(', '))
 
 export const toViewModel = observation => {
     const { clouds, dewp, name, reportTime, slp, temp, visib } = observation
+
+    if (dewp === undefined || temp === undefined) throw new Error(`observation ${reportTime} is missing temperature or dewpoint`)
 
     return {
         cloudBaseFeet: Math.round(metresToFeet(lclMetres({ dewpointCelsius: dewp, temperatureCelsius: temp }))),
