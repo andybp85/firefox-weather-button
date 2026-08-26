@@ -124,9 +124,13 @@ Select in this order, from the single `hours=4` response:
    **computed**.
 
 Cross-check: when both are available and their signs disagree, prefer the
-computed value. Only a rising case (`+1.5`) has been observed, so `presTend`'s
-sign convention for falling pressure is unverified and gets a test once a
-falling fixture is captured.
+computed value.
+
+**Sign convention verified 2026-08-26.** KORD reported `presTend: -1.2`, so
+negative means falling. The series it came from gives `1012.8 - 1014.0 = -1.2`
+exactly, so the computed fallback reproduces the reported value to the tenth.
+The cross-check is retained as a regression guard, not as a hedge against an
+unknown.
 
 WMO code table 0200, retained for reference should `rawOb` parsing be added:
 
@@ -208,7 +212,7 @@ Every row below was observed against live endpoints on 2026-08-26.
 | Condition | Handling |
 |---|---|
 | `presTend` present on only the 3-hourly obs (1 of 3 seen) | Scan the `hours=4` window for the newest carrying it; else compute from the `slp` series in the same response |
-| `presTend` sign unverified for falling pressure | Cross-check against computed delta; on disagreement prefer computed |
+| Reported and computed tendency disagree in sign | Prefer computed. Verified agreeing at KORD 2026-08-26; retained as a regression guard |
 | `probabilityOfThunder` durations vary `PT1H` .. `P1DT3H` | Parse the ISO-8601 duration and expand; never assume hourly buckets |
 | `probabilityOfThunder` absent or empty | Omit the thunder row; do not render a zeroed strip |
 | `visib` is the string `"10+"` | Parse defensively; not a number |
@@ -233,7 +237,7 @@ Test-first. Unit tests over pure modules are the primary investment.
 **Fixtures** in `test/fixtures/`, captured from live endpoints:
 
 - KEWR AWC response, rising case (`presTend: 1.5`, `53015` in `rawOb`)
-- A falling case, to be captured from a station with falling pressure
+- KORD AWC response, falling case (`presTend: -1.2`, series `1012.8 - 1014.0`)
 - TBW gridpoint — `probabilityOfThunder` 0-75% across `PT1H`, `PT2H`, `PT3H`,
   `PT6H`, `PT9H`, `PT12H` blocks. The best interval-expansion fixture found
 - OKX gridpoint — includes a `P1DT3H` block and empty `stability` arrays
