@@ -35,7 +35,8 @@ is itself a source of error.
 
 Instead, the popup states the reading's age. It also states the trend's provenance: whether
 the 3-hour value came from the station's own report (`reported`) or from the raw pressure
-series (`computed`). Read the arrow with the tide in mind. An afternoon rise can be the tide,
+series (`computed`). It states when the trend's own window closed, which can be hours before
+the newest reading. Read the arrow with the tide in mind. An afternoon rise can be the tide,
 not a real change in the weather.
 
 The age and provenance labels sit in the popup footer on every path, including a stale or
@@ -86,11 +87,12 @@ The build environment for this project has no Firefox binary and no display. The
 appearance and behavior in an actual Firefox window are unverified.
 
 Automated checks stand in for that gap. `web-ext lint` passes with no errors or warnings. The
-test suite runs the popup's rendering code against a simulated DOM (jsdom), with real network
-requests to the live NWS APIs. These checks do not verify Gecko's own rendering, popup sizing,
-or the `browser.*` extension APIs.
+test suite runs the popup's rendering code against a simulated DOM (jsdom). It makes no network
+requests: `fetch` and `browser.storage.local` are replaced with stubs, and the API responses
+come from recorded fixtures. These checks do not verify Gecko's own rendering, popup sizing, or
+the `browser.*` extension APIs.
 
-A manual check against the real APIs, run outside a browser, is recorded in
+A one-off manual check against the live APIs, run outside a browser, is recorded in
 [`docs/verification-log.md`](docs/verification-log.md). Treat that log as a substitute for
 browser testing, not a replacement for it. Load the extension in a real Firefox Developer
 Edition profile before you rely on it day to day.

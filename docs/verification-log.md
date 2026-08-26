@@ -47,6 +47,14 @@ fetched independently at the same time:
 
 `#age` and `#provenance` rendered as required on this path.
 
+**Defect found later in this same reading, fixed in the final round.** The `presTend` behind
+`"↑ +1.5 / 3h"` sat on the 12:00Z record, four hours before the 16:00Z run. `#provenance` read
+`tendency: reported (3h)` and said nothing about when that window closed, so a stale trend
+rendered as a current one. `resolveTendency` had computed the window's own `observedAt` since
+Task 4 and the popup discarded it. `#provenance` now reads
+`tendency: reported (3h), ended 4h ago`. This is load-bearing: the design declines to correct
+the trend for the semidiurnal tide and offers disclosure of age and provenance instead.
+
 **Bug found, out of scope for Task 9.** `ambientPrimary` reads `"76F   undefined 4 kt   10+ mi"`.
 The live newest KEWR record carries `wdir: "VRB"` (a string, for genuinely variable wind) rather
 than omitting `wdir`. `src/observation.js`'s `describeWind`/`cardinal` (built in Task 6) only
@@ -123,3 +131,25 @@ display. The popup has still never been rendered in an actual Firefox window. Th
 above remains the closest available substitute — a live jsdom-driven run against the real NWS
 APIs — and the README now states this limitation plainly rather than implying browser testing
 took place.
+
+## Final fix round, 2026-08-26
+
+A whole-branch review found defects the checks above could not see. Two of them contradict
+findings recorded earlier in this log, so they are noted here rather than left to the commit
+history.
+
+**The degraded path did not survive a bad newest record.** The "Degraded path" section above
+exercised a failing `fetch`, which is one of the two ways that path is reached. The other is a
+live series whose newest record cannot build a view model. `popup-main.js` wrote the series to
+`observations:<id>` before `buildModel` ran, so that series overwrote the last good cache and
+the fallback read it back, threw again, and rendered the error page — having destroyed the only
+reading it existed to preserve. Both cache writes now happen after `buildModel` succeeds.
+`test/popup-main.test.js` pins this, and the case fails against the previous code.
+
+**The 10-minute TTL was never wired up.** `storage.js` has carried `ttlMinutes` since Task 7
+with no production caller, so the popup re-fetched both upstreams on every open. The happy path
+now reads through the TTL and caches the gridpoint forecast beside the series; the degraded path
+keeps reading the same key with no TTL on purpose.
+
+Environment note, unchanged: still no Firefox binary and no display. The Real-Firefox gap
+recorded under Task 10 remains open.

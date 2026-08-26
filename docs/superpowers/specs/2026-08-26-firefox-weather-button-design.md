@@ -44,7 +44,7 @@ facts were verified against the live endpoints on 2026-08-26.
 ```
 options: station ID (e.g. KEWR)
   |
-  +-- AWC  metar?ids={id}&format=json&hours=4
+  +-- AWC  metar?ids={id}&format=json&hours=5
   |     -> temp, dewp, slp, presTend, wdir, wspd, visib, clouds, lat, lon, name
   |     |
   |     +-- api.weather.gov /points/{lat},{lon}   -> gridpoint URL   [cached indefinitely]
@@ -81,7 +81,7 @@ badge version additive.
 
 ### aviationweather.gov (NWS Aviation Weather Center)
 
-`https://aviationweather.gov/api/data/metar?ids={ID}&format=json&hours=4`
+`https://aviationweather.gov/api/data/metar?ids={ID}&format=json&hours=5`
 
 Returns pre-decoded fields, which is why no METAR parser is needed. Observed
 2026-08-26:
@@ -116,11 +116,15 @@ the Fetch spec and cannot be set from `fetch()`, but nothing needs to. No
 
 ## Tendency logic
 
-Select in this order, from the single `hours=4` response:
+Select in this order, from the single `hours=5` response:
+
+The window is 5 hours, not 4: `presTend` rides on the 3-hourly synoptic
+observation, and a 4-hour window can miss it near a boundary.
 
 1. The newest observation carrying `presTend`. Provenance: **reported**.
    Report its age; the group appears only in the 3-hourly synoptic METARs, so
-   it can be up to 3 hours old.
+   the window it describes can have closed hours before the newest reading.
+   The popup states when that window closed, beside the provenance.
 2. Otherwise difference the `slp` series across ~3 hours. Provenance:
    **computed**.
 
@@ -212,7 +216,7 @@ Every row below was observed against live endpoints on 2026-08-26.
 
 | Condition | Handling |
 |---|---|
-| `presTend` present on only the 3-hourly obs (1 of 3 seen) | Scan the `hours=4` window for the newest carrying it; else compute from the `slp` series in the same response |
+| `presTend` present on only the 3-hourly obs (1 of 3 seen) | Scan the `hours=5` window for the newest carrying it; else compute from the `slp` series in the same response |
 | Reported and computed tendency disagree in sign | Prefer computed. Verified agreeing at KORD 2026-08-26; retained as a regression guard |
 | `probabilityOfThunder` durations vary `PT1H` .. `P1DT3H` | Parse the ISO-8601 duration and expand; never assume hourly buckets |
 | `probabilityOfThunder` absent or empty | Omit the thunder row; do not render a zeroed strip |
