@@ -1,0 +1,146 @@
+{
+    "type": "Feature",
+    "geometry": {
+        "type": "Polygon"
+    },
+    "properties": {
+        "probabilityOfThunder": {
+            "values": [
+                {
+                    "validTime": "2026-08-26T00:00:00+00:00/P1DT3H",
+                    "value": 0
+                },
+                {
+                    "validTime": "2026-08-27T03:00:00+00:00/PT6H",
+                    "value": 1
+                },
+                {
+                    "validTime": "2026-08-27T09:00:00+00:00/PT3H",
+                    "value": 5
+                },
+                {
+                    "validTime": "2026-08-27T12:00:00+00:00/PT3H",
+                    "value": 13
+                },
+                {
+                    "validTime": "2026-08-27T15:00:00+00:00/PT3H",
+                    "value": 25
+                },
+                {
+                    "validTime": "2026-08-27T18:00:00+00:00/PT3H",
+                    "value": 39
+                },
+                {
+                    "validTime": "2026-08-27T21:00:00+00:00/PT3H",
+                    "value": 34
+                },
+                {
+                    "validTime": "2026-08-28T00:00:00+00:00/PT3H",
+                    "value": 22
+                },
+                {
+                    "validTime": "2026-08-28T03:00:00+00:00/PT3H",
+                    "value": 16
+                },
+                {
+                    "validTime": "2026-08-28T06:00:00+00:00/PT3H",
+                    "value": 12
+                },
+                {
+                    "validTime": "2026-08-28T09:00:00+00:00/PT3H",
+                    "value": 11
+                },
+                {
+                    "validTime": "2026-08-28T12:00:00+00:00/PT6H",
+                    "value": 9
+                },
+                {
+                    "validTime": "2026-08-28T18:00:00+00:00/PT3H",
+                    "value": 20
+                },
+                {
+                    "validTime": "2026-08-28T21:00:00+00:00/PT3H",
+                    "value": 19
+                },
+                {
+                    "validTime": "2026-08-29T00:00:00+00:00/PT3H",
+                    "value": 7
+                },
+                {
+                    "validTime": "2026-08-29T03:00:00+00:00/PT3H",
+                    "value": 3
+                },
+                {
+                    "validTime": "2026-08-29T06:00:00+00:00/PT18H",
+                    "value": 1
+                },
+                {
+                    "validTime": "2026-08-30T00:00:00+00:00/PT6H",
+                    "value": 3
+                },
+                {
+                    "validTime": "2026-08-30T06:00:00+00:00/PT6H",
+                    "value": 2
+                },
+                {
+                    "validTime": "2026-08-30T12:00:00+00:00/PT6H",
+                    "value": 4
+                },
+                {
+                    "validTime": "2026-08-30T18:00:00+00:00/PT6H",
+                    "value": 5
+                },
+                {
+                    "validTime": "2026-08-31T00:00:00+00:00/PT6H",
+                    "value": 7
+                },
+                {
+                    "validTime": "2026-08-31T06:00:00+00:00/PT6H",
+                    "value": 2
+                },
+                {
+                    "validTime": "2026-08-31T12:00:00+00:00/PT6H",
+                    "value": 0
+                },
+                {
+                    "validTime": "2026-08-31T18:00:00+00:00/PT6H",
+                    "value": 4
+                },
+                {
+                    "validTime": "2026-09-01T00:00:00+00:00/PT6H",
+                    "value": 8
+                },
+                {
+                    "validTime": "2026-09-01T06:00:00+00:00/PT6H",
+                    "value": 6
+                },
+                {
+                    "validTime": "2026-09-01T12:00:00+00:00/PT6H",
+                    "value": 5
+                },
+                {
+                    "validTime": "2026-09-01T18:00:00+00:00/PT6H",
+                    "value": 14
+                },
+                {
+                    "validTime": "2026-09-02T00:00:00+00:00/PT6H",
+                    "value": 12
+                },
+                {
+                    "validTime": "2026-09-02T06:00:00+00:00/PT6H",
+                    "value": 8
+                },
+                {
+                    "validTime": "2026-09-02T12:00:00+00:00/PT6H",
+                    "value": 5
+                },
+                {
+                    "validTime": "2026-09-02T18:00:00+00:00/PT6H",
+                    "value": 14
+                }
+            ]
+        },
+        "updateTime": "2026-08-26T06:49:03+00:00",
+        "validTimes": "2026-08-26T00:00:00+00:00/P8DT1H"
+    }
+}
