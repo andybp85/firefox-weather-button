@@ -8,9 +8,13 @@ const cardinal = degrees => COMPASS_POINTS[Math.round(degrees / DEGREES_PER_POIN
 
 // AWC reports calm air as wdir: 0, wspd: 0 — indistinguishable from "due north" by
 // direction alone, so speed must be checked first.
-const describeWind = ({ wdir, wspd }) => (wspd ? `${cardinal(wdir)} ${wspd} kt` : 'calm')
+const describeWind = ({ wdir, wspd }) => {
+    if (!wspd) return 'calm'
+    if (wdir === undefined) return `${wspd} kt`
+    return `${cardinal(wdir)} ${wspd} kt`
+}
 
-const describeCloudLayer = ({ base, cover }) => `${cover} ${base} ft`
+const describeCloudLayer = ({ base, cover }) => (base === undefined ? cover : `${cover} ${base} ft`)
 
 const describeClouds = clouds => (clouds === undefined || clouds.length === 0 ? 'clear' : clouds.map(describeCloudLayer).join(', '))
 

@@ -40,9 +40,21 @@ test('toViewModel rounds a mid-sector bearing to the nearest point', () => {
     assert.equal(view.wind, 'NNW 7 kt')
 })
 
+test('toViewModel reports a wind speed with no reported direction', () => {
+    // Variable winds arrive with a speed and no wdir; naming a direction would invent one.
+    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wspd: 7 })
+    assert.equal(view.wind, '7 kt')
+})
+
 test('toViewModel describes an empty cloud layer list as clear', () => {
     const view = toViewModel({ clouds: [], dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
     assert.equal(view.clouds, 'clear')
+})
+
+test('toViewModel renders a cloud layer that reports no base', () => {
+    // A clear sky is reported as a cover with no base; "CLR undefined ft" is not a cloud report.
+    const view = toViewModel({ clouds: [{ cover: 'CLR' }], dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
+    assert.equal(view.clouds, 'CLR')
 })
 
 test('toViewModel renders the newest fixture observation', () => {
