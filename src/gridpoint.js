@@ -23,6 +23,13 @@ export const durationHours = duration => {
 // now is injected rather than read from Date.now() so this stays pure and testable against
 // a pinned clock; callers (popup-main.js) pass the real wall clock.
 export const thunderSeries = ({ gridpoint, hours, now }) => {
+    // A NaN comparison below (Date.parse(...) + MS_PER_HOUR > undefined) is false for every
+    // entry, so an omitted now would otherwise filter out the whole series silently — the
+    // thunder row just vanishes with no error, which is the exact failure shape that hid the
+    // elapsed-hours bug this filter fixes. now is reachable-missing for any future caller, so
+    // this throws rather than degrading to an empty series.
+    if (now === undefined) throw new Error('thunderSeries requires now')
+
     const blocks = gridpoint.properties?.probabilityOfThunder?.values ?? []
 
     const hourly = blocks.flatMap(({ validTime, value }) => {

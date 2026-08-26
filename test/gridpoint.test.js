@@ -73,3 +73,13 @@ test('thunderSeries drops hours that have already elapsed before slicing', () =>
         ['2026-08-26T04:00:00.000Z', '2026-08-26T05:00:00.000Z', '2026-08-26T06:00:00.000Z'],
     )
 })
+
+test('thunderSeries throws rather than silently returning an empty series when now is missing', () => {
+    // A NaN comparison (Date.parse(...) + MS_PER_HOUR > undefined) is false for every entry,
+    // so an omitted `now` used to filter out the whole series — the thunder row just vanished
+    // with no error, which is exactly the failure shape that hid the original elapsed-hours
+    // bug through a full review cycle. now is reachable-missing (any future caller could omit
+    // it) and the old failure was silent, so this is a guard, not defensive code for the
+    // unreachable case.
+    assert.throws(() => thunderSeries({ gridpoint: fixture('tbw-gridpoint'), hours: 12 }), /now/)
+})
