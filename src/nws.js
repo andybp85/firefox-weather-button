@@ -14,6 +14,8 @@ export const createNwsClient = ({ cache, fetch }) => {
     const fetchObservations = async stationId => {
         const url = `${AWC_METAR_URL}?ids=${encodeURIComponent(stationId)}&format=json&hours=${OBSERVATION_HOURS}`
         const observations = await getJson(fetch, url)
+        // station.js destructures the first observation and depends on this throw, because
+        // AWC signals an unknown station with an empty array rather than an error status.
         if (observations.length === 0) throw new Error(`no observations for station ${stationId}`)
         return observations
     }
