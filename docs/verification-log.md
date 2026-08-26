@@ -58,6 +58,14 @@ This is a pre-existing defect in a Task 6 file, not something Task 9's popup or 
 introduced, and `src/observation.js` is outside Task 9's file list — left unfixed here and flagged
 in the implementer's report instead of patched out of scope.
 
+**Resolved in commit `371a3bd`.** The controller ruled this defect into Task 9's fix round rather
+than parking it, because it is live-reachable (verified 2026-08-26: 4 of 144 records across 20
+stations carried a string `wdir`) and sits on the popup's headline row. `describeWind` now guards
+on `typeof wdir !== 'number'` rather than string-matching `'VRB'`, and renders `variable` — the
+meaning of the METAR code, not merely a safe fallback. Regression tests cover both `wspd: 3` and
+`wspd: 0`. The finding above is left in place as the record of how it was caught; the reading it
+describes no longer reproduces.
+
 ### Degraded path — fetch failing, a stale cache present
 
 Seeded `browser.storage.local` with a station and an `observations:KEWR` cache entry 4 hours old
