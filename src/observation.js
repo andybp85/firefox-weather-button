@@ -11,6 +11,11 @@ const cardinal = degrees => COMPASS_POINTS[Math.round(degrees / DEGREES_PER_POIN
 const describeWind = ({ wdir, wspd }) => {
     if (!wspd) return 'calm'
     if (wdir === undefined) return `${wspd} kt`
+    // AWC also sends the literal string 'VRB' for genuinely variable wind, rather than
+    // omitting wdir. Guard on it not being a number, not on matching 'VRB' specifically —
+    // cardinal() only makes sense for a numeric bearing, and this is the correct rendering
+    // for VRB (per the METAR code), not merely a safe fallback for an unexpected value.
+    if (typeof wdir !== 'number') return `variable ${wspd} kt`
     return `${cardinal(wdir)} ${wspd} kt`
 }
 

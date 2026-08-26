@@ -50,6 +50,19 @@ test('toViewModel reports a wind speed with no reported direction', () => {
     assert.equal(view.wind, '7 kt')
 })
 
+test('toViewModel describes a literal VRB direction as variable', () => {
+    // AWC sends wdir as the string 'VRB' for genuinely variable wind, not just an absent
+    // field — cardinal('VRB') would otherwise compute NaN and print "undefined 3 kt".
+    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 'VRB', wspd: 3 })
+    assert.equal(view.wind, 'variable 3 kt')
+})
+
+test('toViewModel still reports calm for a VRB direction with zero speed', () => {
+    // The zero-speed check runs first regardless of what wdir says: a calm report is calm.
+    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 'VRB', wspd: 0 })
+    assert.equal(view.wind, 'calm')
+})
+
 test('toViewModel describes an empty cloud layer list as clear', () => {
     const view = toViewModel({ clouds: [], dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
     assert.equal(view.clouds, 'clear')
