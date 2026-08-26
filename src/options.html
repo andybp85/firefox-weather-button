@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+        <title>Weather Button options</title>
+        <link href="/src/ui.css" rel="stylesheet" />
+    </head>
+    <body>
+        <main class="options">
+            <h1>Weather Button</h1>
+            <label for="station">Station ID</label>
+            <input autocomplete="off" id="station" maxlength="4" placeholder="KEWR" spellcheck="false" type="text" />
+            <p class="hint">A four-letter ICAO identifier for a reporting station near you.</p>
+            <button id="save" type="button">Save</button>
+            <p aria-live="polite" class="status" id="status"></p>
+        </main>
+        <script src="/src/options.js" type="module"></script>
+    </body>
+</html>

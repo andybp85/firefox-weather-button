@@ -1,0 +1,105 @@
+/* Kit Developer Edition tokens (see kit-developer-edition skill, references/tokens.css).
+   Names and values are copied verbatim from the skill; only the property order changed,
+   to alphabetize per this project's css.md rule. */
+:root {
+    /* color-scheme must precede the light-dark() custom properties below it depends on —
+       order-dependent, so it breaks the alphabetize-by-default rule intentionally. */
+    color-scheme: light dark;
+
+    /* Heat — rationed to one element per view. */
+    --accent: light-dark(#e8631c, #f47725);
+    --bg: light-dark(#dce2f9, #0a0e4a);
+    --bg-deep: light-dark(#cdd5f4, #1d2364); /* sky gradient floor */
+    --cloud: light-dark(#8790cc, #6b74be); /* rules, dashes — never text */
+    --danger: light-dark(#b5342b, #e8574c);
+    --font-body: 'Avenir Next', 'Avenir', system-ui, -apple-system, sans-serif;
+    --font-display: 'Arial Rounded MT Bold', 'Avenir Next', 'Trebuchet MS', sans-serif;
+    --ink: light-dark(#1a2170, #d9ddf6);
+    --muted: light-dark(#5a63a8, #8a92cf);
+    --on-hot: #14071e; /* text on an accent-filled surface, both schemes */
+    --panel: light-dark(#c9d0f0, #2a3390); /* window mesas */
+    --raised: light-dark(#aab2e6, #3b4494); /* buttons, drag chrome */
+    --sun: light-dark(#d99a00, #ffc300);
+    --tile: light-dark(#e6eafb, #1a2170); /* tab tiles, plaques */
+
+    scrollbar-color: var(--accent) transparent;
+    scrollbar-width: thin;
+}
+
+body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    margin: 0;
+    padding: 2rem;
+}
+
+/* .options is the page's single window mesa — the main content slab per the token roles. */
+.options {
+    background: var(--panel);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-inline: auto;
+    max-width: 24rem;
+    padding: 1.5rem;
+
+    h1 {
+        color: var(--ink);
+        font: 1.4rem var(--font-display);
+        margin: 0;
+    }
+
+    label {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    input#station {
+        background: var(--tile);
+        border: 1px solid var(--cloud);
+        border-radius: 10px;
+        box-sizing: border-box;
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 1rem;
+        padding: 0.6rem 0.75rem;
+
+        /* --sun is the sanctioned focus color even though the button already spends
+           this view's one hot element on --accent — focus is transient and exempted. */
+        &:focus-visible {
+            outline: 2px solid var(--sun);
+            outline-offset: 2px;
+        }
+    }
+
+    /* --muted fails AA on --panel at normal text size (3.59:1 dark, 3.64:1 light — see
+       palette.md); --ink stays the hint color here and the smaller font size alone
+       carries the secondary-text hierarchy. */
+    .hint {
+        color: var(--ink);
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    button#save {
+        background: var(--accent);
+        border: 0;
+        border-radius: 999px;
+        color: var(--on-hot);
+        cursor: pointer;
+        font: 600 1rem var(--font-display);
+        padding: 0.6rem 1.25rem;
+
+        &:focus-visible {
+            outline: 2px solid var(--sun);
+            outline-offset: 2px;
+        }
+    }
+
+    .status {
+        margin: 0;
+        min-height: 1.2em;
+    }
+}
