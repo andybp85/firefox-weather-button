@@ -19,10 +19,16 @@ const signsConflict = (a, b) => a !== 0 && b !== 0 && Math.sign(a) !== Math.sign
 // optional fallback, not an essential value, and resolveTendency decides what to do.
 // Assumes the series is newest-first; nws.js sorts it there so this need not re-derive it.
 const computeFromSeries = observations => {
-    const newest = observations[0]
-    const baseline = observations.find(observation => hoursBetween(observation, newest) >= TENDENCY_WINDOW_HOURS)
+    // SPECI reports are issued off-cycle and carry altim rather than slp, and one can sit in
+    // either slot — KSEA had a pressure-less SPECI mid-series and KORD one as the newest
+    // record. Selecting both ends from the slp-bearing subset skips them instead of reading
+    // a missing reading as a missing series.
+    const reportingPressure = observations.filter(observation => observation.slp !== undefined)
+    const newest = reportingPressure[0]
+    if (newest === undefined) return undefined
+
+    const baseline = reportingPressure.find(observation => hoursBetween(observation, newest) >= TENDENCY_WINDOW_HOURS)
     if (baseline === undefined) return undefined
-    if (newest.slp === undefined || baseline.slp === undefined) return undefined
 
     const hPa = roundToTenth(newest.slp - baseline.slp)
     return {
