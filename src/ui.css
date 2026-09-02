@@ -150,24 +150,43 @@ body {
 }
 
 .detail {
-    .dewpoint {
+    /* Hoisted out of .dewpoint when the wind row arrived: both rows carry the same standing
+       label, and a second copy of these five declarations is how the two start to drift. */
+    .label {
+        color: var(--muted);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .dewpoint,
+    .wind {
         align-items: baseline;
         display: flex;
         gap: 0.4rem;
-
-        .label {
-            color: var(--muted);
-            font-size: 0.6rem;
-            font-weight: 600;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-        }
     }
 
-    #pressure {
+    #pressure,
+    .wind {
         color: var(--ink);
         font-variant-numeric: tabular-nums;
         margin-top: 0.35rem;
+    }
+
+    /* Filled with the row's own ink rather than a colour of its own: the accent ration is spent
+       on the ambient headline, and the sock is a reading, not this view's one hot element. */
+    .windsock {
+        align-self: center;
+        block-size: 1.1em;
+        fill: currentcolor;
+        inline-size: 1.1em;
+    }
+
+    /* popup.js draws no polygons at all for a wind nobody measured. Collapsing the empty box
+       keeps the row from holding a gap where a sock is not flying. */
+    .windsock:empty {
+        display: none;
     }
 }
 

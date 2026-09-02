@@ -15,6 +15,13 @@
             <section class="detail">
                 <p class="dewpoint"><span class="label">Dewpoint</span> <span id="dewpoint"></span></p>
                 <p id="pressure"></p>
+                <p class="wind">
+                    <span class="label">Wind</span>
+                    <!-- popup.js fills this from the same geometry the toolbar button draws, so the
+                         panel is where the button's glyph can be read. -->
+                    <svg aria-hidden="true" class="windsock" viewBox="0 0 24 24"></svg>
+                    <span id="wind"></span>
+                </p>
             </section>
             <section class="secondary">
                 <p id="cloud-base"></p>

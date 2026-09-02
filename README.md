@@ -11,9 +11,19 @@ The button icon is drawn, not fixed. It shows:
 - A background colour for the comfort band that dewpoint falls in (see the table below).
 - A glyph for the 3-hour barometric pressure trend: an up arrow for a rise, a down arrow for
   a fall, and a dash for steady.
+- A windsock, once the wind is worth announcing: gusting, or sustained at 15 kt or more. The
+  sock's lift is the speed — it hangs at calm and flies straight out at 45 kt — and a short
+  detached tick beyond its tip means the wind is gusting.
 
-Point at the button to read the same values as text, with the station name and the comfort
-band written out.
+The trend glyph sits in a band across the bottom of the square. A notable wind takes that band
+for the sock, and the trend moves to a smaller mark in the top-right corner; below the
+threshold the icon is drawn exactly as it always was. The button shows no wind direction:
+sixteen bearings do not survive three device pixels, and a bearing drawn wrong is worse than
+none. Direction is in the popup and the tooltip.
+
+Point at the button to read the same values as text, with the station name, the comfort band,
+and the wind written out. The tooltip names the wind at any speed, including one too light to
+have earned room on the icon.
 
 The button refreshes every 10 minutes, and again as soon as you save a different station. It
 shares its cache with the popup, so the two together make one set of requests, not two.
@@ -40,8 +50,9 @@ The popup shows:
 
 - Dewpoint
 - Barometric pressure, with a 3-hour trend arrow
-- Ambient conditions from the nearest METAR station (temperature, wind, visibility, cloud
-  layers)
+- Wind: direction, sustained speed, and the gust where one is reported, beside a windsock
+  drawn from the same geometry the toolbar button uses
+- Ambient conditions from the nearest METAR station (temperature, visibility, cloud layers)
 - A computed cloud base, from the dewpoint depression
 - A 12-hour strip of thunderstorm probability
 

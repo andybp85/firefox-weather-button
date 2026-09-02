@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Wind in the popup, in a row of its own beside the dewpoint and pressure: direction, sustained
+  speed, and the gust when the station reports one, next to a windsock drawn at its measured lift.
+- A windsock on the toolbar button once the wind is worth announcing — gusting, or sustained at
+  15 kt or more. It takes the bottom band and the pressure trend moves to the top-right corner;
+  below that threshold the icon is unchanged. The tooltip names the wind either way.
+
+### Changed
+
+- Wind is decoded into a value (`src/wind.js`) rather than a sentence, so the button can read the
+  figures. The popup and the tooltip share one wording of it.
+- The wind left the popup's ambient line, which was already three fields wide.
+
 ## [0.2.0] - 2026-09-02
 
 ### Added

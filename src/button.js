@@ -1,5 +1,6 @@
 import { comfortBand } from './comfort.js'
 import { resolveModel } from './model.js'
+import { describeWind } from './wind.js'
 
 // Restores the manifest's own icon and title. The button is the only weather this extension
 // shows before the popup is opened, so a failed refresh has to look unmistakably different
@@ -7,19 +8,28 @@ import { resolveModel } from './model.js'
 // than the plain ornament plus a title that says what went wrong.
 const DEFAULT_ICON_PATH = { 48: 'icons/icon.svg' }
 
-const describeButton = ({ observation, tendency }) => ({
-    dewpointFahrenheit: observation.dewpointFahrenheit,
-    direction: tendency.direction,
-    title: `${observation.stationName} — ${observation.dewpointFahrenheit}F dewpoint (${comfortBand(observation.dewpointFahrenheit).label}), pressure ${tendency.direction}`,
-})
+const describeButton = ({ observation, tendency }) => {
+    const { dewpointFahrenheit, stationName, wind } = observation
+    const { label } = comfortBand(dewpointFahrenheit)
+
+    return {
+        dewpointFahrenheit,
+        direction: tendency.direction,
+        // The tooltip carries the wind in words on every path, including the ones where the icon
+        // does not draw it: a light wind is still a reading, it has simply not earned the band.
+        title: `${stationName} — ${dewpointFahrenheit}F dewpoint (${label}), pressure ${tendency.direction}, wind ${describeWind(wind)}`,
+        wind,
+    }
+}
 
 const showUnavailable = async ({ action, reason }) => {
     await action.setIcon({ path: DEFAULT_ICON_PATH })
     await action.setTitle({ title: `Weather detail — no reading (${reason})` })
 }
 
-// Paints the toolbar button from the current observation: the dewpoint in figures, the
-// comfort band as the chip's colour, and the 3-hour pressure trend as the glyph beneath.
+// Paints the toolbar button from the current observation: the dewpoint in figures, the comfort
+// band as the chip's colour, the 3-hour pressure trend, and the wind as a windsock once it is
+// blowing hard enough to have earned the room (see wind.js's isNotable).
 // paintIcon is injected because it needs a canvas, which is the one part of this that the
 // test environment has no implementation of; everything above it is ordinary data.
 export const updateButton = async ({ action, cache, client, now, paintIcon, stationId }) => {
@@ -27,8 +37,8 @@ export const updateButton = async ({ action, cache, client, now, paintIcon, stat
 
     try {
         const model = await resolveModel({ cache, client, now, stationId })
-        const { dewpointFahrenheit, direction, title } = describeButton(model)
-        await action.setIcon({ imageData: paintIcon({ dewpointFahrenheit, direction }) })
+        const { dewpointFahrenheit, direction, title, wind } = describeButton(model)
+        await action.setIcon({ imageData: paintIcon({ dewpointFahrenheit, direction, wind }) })
         await action.setTitle({ title })
     } catch (error) {
         // resolveModel already falls back to the last good cached series, so reaching here

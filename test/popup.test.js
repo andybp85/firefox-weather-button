@@ -20,7 +20,7 @@ const model = {
         stationName: 'Newark Intl, NJ, US',
         temperatureFahrenheit: 71,
         visibility: '10+',
-        wind: 'NNW 7 kt',
+        wind: { direction: 'NNW', knots: 7, state: 'measured' },
     },
     tendency: { direction: 'rising', hPa: 1.5, observedAt: '2026-08-26T12:00:00.000Z', provenance: 'reported', windowHours: 3 },
     thunder: [{ hour: '2026-08-26T13:00:00.000Z', percent: 25 }],
@@ -38,6 +38,54 @@ test('render shows the pressure and its trend magnitude', () => {
     const pressure = document.querySelector('#pressure').textContent
     assert.match(pressure, /1019\.1/)
     assert.match(pressure, /1\.5/)
+})
+
+const windOf = ({ observation, ...rest }, wind) => ({ ...rest, observation: { ...observation, wind } })
+const socks = document => document.querySelectorAll('.windsock polygon')
+
+test('render gives the wind its own row, with the gust beside the sustained speed', () => {
+    const document = popupDocument()
+    render({ document, model: windOf(model, { direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' }), now })
+    assert.equal(document.querySelector('#wind').textContent, 'NW 18 kt G 27')
+})
+
+test('render names a variable wind rather than a bearing it does not have', () => {
+    const document = popupDocument()
+    render({ document, model: windOf(model, { direction: 'variable', knots: 3, state: 'measured' }), now })
+    assert.equal(document.querySelector('#wind').textContent, 'variable 3 kt')
+})
+
+test('render writes calm rather than a zero speed, and still draws the sock at rest', () => {
+    const document = popupDocument()
+    render({ document, model: windOf(model, { state: 'calm' }), now })
+    assert.equal(document.querySelector('#wind').textContent, 'calm')
+    assert.ok(socks(document).length > 0, 'calm air is a reading, and a limp sock is how it reads')
+})
+
+// An unreported wind is not a calm one, and a sock at rest is exactly what calm looks like.
+// Drawing one for a wind nobody measured would assert the reading the value refuses to make.
+test('render draws no sock at all for a wind nobody measured', () => {
+    const document = popupDocument()
+    render({ document, model: windOf(model, { state: 'unreported' }), now })
+    assert.equal(document.querySelector('#wind').textContent, 'unreported')
+    assert.equal(socks(document).length, 0)
+})
+
+test('render flies a gust tick only when the wind is gusting', () => {
+    const steady = popupDocument()
+    const gusting = popupDocument()
+    render({ document: steady, model: windOf(model, { knots: 18, state: 'measured' }), now })
+    render({ document: gusting, model: windOf(model, { gustKnots: 27, knots: 18, state: 'measured' }), now })
+
+    assert.equal(socks(gusting).length, socks(steady).length + 1)
+})
+
+// The ambient line is the accent-filled headline and was already three fields wide at 19rem.
+// Wind moved out of it rather than growing it, so a gust cannot push the line into wrapping.
+test('render keeps the wind out of the ambient line', () => {
+    const document = popupDocument()
+    render({ document, model, now })
+    assert.doesNotMatch(document.querySelector('.ambient-primary').textContent, /kt/)
 })
 
 test('render shows the computed cloud base', () => {
@@ -92,6 +140,15 @@ test('render pins the observation age to a fixed clock via the injected now', ()
 // renderUnavailable used to live only in popup-main.js, untested and hand-copying render()'s
 // selector strings — a rename would break it silently at the exact moment it's meant to be
 // the safety net. It's a second export of popup.js now, sharing SELECTORS with render().
+test('renderUnavailable blanks the wind row and takes the sock down with it', () => {
+    const document = popupDocument()
+    render({ document, model, now })
+    renderUnavailable({ document, reason: 'offline' })
+
+    assert.equal(document.querySelector('#wind').textContent, '\u2014')
+    assert.equal(socks(document).length, 0, 'a sock left flying would claim a wind the popup just said it has no reading for')
+})
+
 test('renderUnavailable still states the footer, with the reason in the age line', () => {
     const document = popupDocument()
     renderUnavailable({ document, reason: 'no station configured yet' })

@@ -27,40 +27,11 @@ test('toViewModel preserves the visibility string verbatim', () => {
     assert.equal(view.visibility, '10+')
 })
 
-test('toViewModel describes calm wind rather than printing a zero', () => {
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 0, wspd: 0 })
-    assert.equal(view.wind, 'calm')
-})
-
-test('toViewModel names a cardinal direction for the wind', () => {
-    // 350 deg is 10 deg from due north: N spans 348.75-11.25, so this is N, not NNW.
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 350, wspd: 7 })
-    assert.equal(view.wind, 'N 7 kt')
-})
-
-test('toViewModel rounds a mid-sector bearing to the nearest point', () => {
-    // 340 deg sits inside NNW's 326.25-348.75 span.
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 340, wspd: 7 })
-    assert.equal(view.wind, 'NNW 7 kt')
-})
-
-test('toViewModel reports a wind speed with no reported direction', () => {
-    // Variable winds arrive with a speed and no wdir; naming a direction would invent one.
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wspd: 7 })
-    assert.equal(view.wind, '7 kt')
-})
-
-test('toViewModel describes a literal VRB direction as variable', () => {
-    // AWC sends wdir as the string 'VRB' for genuinely variable wind, not just an absent
-    // field — cardinal('VRB') would otherwise compute NaN and print "undefined 3 kt".
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 'VRB', wspd: 3 })
-    assert.equal(view.wind, 'variable 3 kt')
-})
-
-test('toViewModel still reports calm for a VRB direction with zero speed', () => {
-    // The zero-speed check runs first regardless of what wdir says: a calm report is calm.
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 'VRB', wspd: 0 })
-    assert.equal(view.wind, 'calm')
+// wind.test.js owns the decoding matrix (absent versus calm, VRB, gusts). What belongs here is
+// that toViewModel hands the record over and carries the value out whole, rather than a sentence.
+test('toViewModel carries the decoded wind value rather than a description of it', () => {
+    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 320, wgst: 27, wspd: 18 })
+    assert.deepEqual(view.wind, { direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
 })
 
 test('toViewModel describes an empty cloud layer list as clear', () => {
@@ -85,7 +56,7 @@ test('toViewModel renders the newest fixture observation', () => {
         stationName: 'Newark Intl, NJ, US',
         temperatureFahrenheit: 74,
         visibility: '10+',
-        wind: 'calm',
+        wind: { state: 'calm' },
     })
 })
 
@@ -93,18 +64,6 @@ test('toViewModel leaves pressure undefined when the report omits it', () => {
     // SPECI reports are issued off-cycle and carry altim rather than slp.
     const speci = fixture('kord-falling').find(o => o.metarType === 'SPECI')
     assert.equal(toViewModel(speci).pressureHpa, undefined)
-})
-
-// An omitted wspd is not a measurement of zero. Reporting "calm" for it asserts a reading
-// nobody took, which is the same class of claim as printing a cardinal for an absent wdir.
-test('toViewModel distinguishes an unreported wind from a calm one', () => {
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
-    assert.equal(view.wind, 'unreported')
-})
-
-test('toViewModel still reads an explicit zero speed as calm', () => {
-    const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wspd: 0 })
-    assert.equal(view.wind, 'calm')
 })
 
 // The station id is always present and identifies the station; 'unknown station' identifies

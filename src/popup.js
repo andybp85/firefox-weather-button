@@ -1,7 +1,16 @@
+import { describeWind } from './wind.js'
+import { windsockPolygons } from './windsock.js'
+
 const ARROWS = { falling: '↓', rising: '↑', steady: '→' }
 const HOUR_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
 const MILLISECONDS_PER_MINUTE = 60_000
 const PLACEHOLDER = '—'
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+
+// The sock is drawn into popup.html's 24-unit viewBox. This pivot and reach hold the mast, the
+// cone at every lift, and the gust tick that flies past it inside that square.
+const SOCK_ORIGIN = { x: 5, y: 4 }
+const SOCK_SCALE = 13
 
 // The one place every element id popup.html carries is spelled out — render() and
 // renderUnavailable() both write through this, rather than each holding its own copy of the
@@ -17,6 +26,8 @@ const SELECTORS = {
     provenance: '#provenance',
     thunder: '#thunder',
     thunderBars: '.thunder-bars',
+    wind: '#wind',
+    windsock: '.windsock',
 }
 
 const write = ({ document, selector, text }) => {
@@ -61,6 +72,32 @@ const describePressure = ({ observation, tendency }) => {
     return observation.pressureHpa === undefined ? trend : `${observation.pressureHpa} hPa   ${trend}`
 }
 
+const buildPolygon = ({ document, points }) => {
+    const polygon = document.createElementNS(SVG_NAMESPACE, 'polygon')
+    polygon.setAttribute('points', points.map(({ x, y }) => `${x},${y}`).join(' '))
+    return polygon
+}
+
+// A wind nobody measured draws nothing: a sock at rest is what calm looks like, and flying one
+// for an absent reading would assert the measurement the value itself refuses to make. The empty
+// <svg> then collapses rather than holding a gap in the row — see .windsock:empty in ui.css.
+const renderWindsock = ({ document, wind }) => {
+    const sock = document.querySelector(SELECTORS.windsock)
+    if (wind.state === 'unreported') {
+        sock.replaceChildren()
+        return
+    }
+
+    const polygons = windsockPolygons({
+        gusting: wind.gustKnots !== undefined,
+        // Calm carries no speed, and a sock hanging dead down its mast is the honest drawing of it.
+        knots: wind.knots ?? 0,
+        origin: SOCK_ORIGIN,
+        scale: SOCK_SCALE,
+    })
+    sock.replaceChildren(...Object.values(polygons).map(points => buildPolygon({ document, points })))
+}
+
 const buildThunderBar = ({ document, hour, percent }) => {
     const bar = document.createElement('li')
     bar.className = 'thunder-bar'
@@ -85,11 +122,13 @@ export const render = ({ document, model, now }) => {
     write({
         document,
         selector: SELECTORS.ambientPrimary,
-        text: `${observation.temperatureFahrenheit}F   ${observation.wind}   ${describeVisibility(observation.visibility)}`,
+        text: `${observation.temperatureFahrenheit}F   ${describeVisibility(observation.visibility)}`,
     })
     write({ document, selector: SELECTORS.ambientClouds, text: observation.clouds })
     write({ document, selector: SELECTORS.dewpoint, text: `${observation.dewpointFahrenheit}F` })
     write({ document, selector: SELECTORS.pressure, text: describePressure({ observation, tendency }) })
+    write({ document, selector: SELECTORS.wind, text: describeWind(observation.wind) })
+    renderWindsock({ document, wind: observation.wind })
     write({ document, selector: SELECTORS.cloudBase, text: `Cloud base ~ ${observation.cloudBaseFeet} ft` })
     write({
         document,
@@ -111,6 +150,8 @@ export const renderUnavailable = ({ document, reason }) => {
     write({ document, selector: SELECTORS.dewpoint, text: PLACEHOLDER })
     write({ document, selector: SELECTORS.pressure, text: PLACEHOLDER })
     write({ document, selector: SELECTORS.cloudBase, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.wind, text: PLACEHOLDER })
+    renderWindsock({ document, wind: { state: 'unreported' } })
     write({ document, selector: SELECTORS.age, text: `no observation available — ${reason}` })
     write({ document, selector: SELECTORS.provenance, text: 'tendency: unavailable' })
     document.querySelector(SELECTORS.thunder).hidden = true

@@ -25,14 +25,26 @@ const recordingContext = () => {
     return { calls, context }
 }
 
-const draw = ({ dewpointFahrenheit = 68, direction = 'steady', size = SIZE } = {}) => {
+const CALM = { state: 'calm' }
+const GALE = { knots: 34, state: 'measured' }
+
+const draw = ({ dewpointFahrenheit = 68, direction = 'steady', size = SIZE, wind = CALM } = {}) => {
     const { calls, context } = recordingContext()
-    drawButtonIcon({ context, dewpointFahrenheit, direction, size })
+    drawButtonIcon({ context, dewpointFahrenheit, direction, size, wind })
     return calls
 }
 
 const only = ({ calls, name }) => calls.filter(({ call }) => call === name)
 const points = calls => calls.filter(({ call }) => call === 'moveTo' || call === 'lineTo').map(({ x, y }) => [x, y])
+
+// The drawing is a sequence of paths, and which path a point belongs to is the whole question
+// once the icon has more than one glyph on it: beginPath is where one shape ends and the next
+// starts. Paths with no points of their own (the chip, drawn as a roundRect) are left out.
+const paths = calls =>
+    calls
+        .reduce((built, call) => (call.call === 'beginPath' ? [...built, []] : [...built.slice(0, -1), [...built.at(-1), call]]), [[]])
+        .map(points)
+        .filter(path => path.length > 0)
 
 test('drawButtonIcon fills the whole square with the reading band colour', () => {
     const calls = draw({ dewpointFahrenheit: 68 })
@@ -79,7 +91,7 @@ test('drawButtonIcon refuses a trend it has no glyph for', () => {
 test('drawButtonIcon shrinks the type so a three-character reading still fits', () => {
     const typeHeight = dewpointFahrenheit => {
         const { context } = recordingContext()
-        drawButtonIcon({ context, dewpointFahrenheit, direction: 'steady', size: SIZE })
+        drawButtonIcon({ context, dewpointFahrenheit, direction: 'steady', size: SIZE, wind: CALM })
         return Number(context.font.match(/(\d+(?:\.\d+)?)px/)[1])
     }
 
@@ -89,10 +101,70 @@ test('drawButtonIcon shrinks the type so a three-character reading still fits', 
 
 test('drawButtonIcon keeps every mark inside the square at the toolbar size', () => {
     const size = 16
-    const marks = ['falling', 'rising', 'steady'].flatMap(direction => points(draw({ direction, size })))
+    // A light wind gusting hard is the case that reaches furthest down the square: the sock is
+    // still hanging near its mast, and the gust tick flies on past the tip of it. Leaving it out
+    // is how a tick hanging a pixel below the icon got drawn and slipped past this test once.
+    const winds = [
+        CALM,
+        GALE,
+        { gustKnots: 14, knots: 4, state: 'measured' },
+        { gustKnots: 41, knots: 34, state: 'measured' },
+        { knots: 15, state: 'measured' },
+        { state: 'unreported' },
+    ]
+    const marks = ['falling', 'rising', 'steady'].flatMap(direction => winds.flatMap(wind => points(draw({ direction, size, wind }))))
 
     for (const [x, y] of marks) {
         assert.ok(x >= 0 && x <= size, `x ${x} outside the square`)
         assert.ok(y >= 0 && y <= size, `y ${y} outside the square`)
     }
+})
+
+// The icon a user sees on an ordinary day is the one that was verified in a real Firefox, and a
+// wind not worth announcing must not redraw it. Identical calls, not merely a similar look.
+test('drawButtonIcon draws exactly the same icon for every wind that has not earned the band', () => {
+    const unremarkable = [CALM, { state: 'unreported' }, { direction: 'NW', knots: 14, state: 'measured' }]
+    const [first, ...rest] = unremarkable.map(wind => draw({ direction: 'rising', wind }))
+
+    for (const drawn of rest) assert.deepEqual(drawn, first)
+})
+
+test('a notable wind gives the bottom band to the sock and sends the trend to the corner', () => {
+    const trend = paths(draw({ direction: 'rising', wind: GALE }))[0]
+
+    for (const [x, y] of trend) {
+        assert.ok(x > SIZE * 0.6, `the corner trend mark reaches back to x ${x}`)
+        assert.ok(y < SIZE * 0.3, `the corner trend mark hangs down to y ${y}`)
+    }
+})
+
+test('a notable wind adds the mast and the sock, and a gust adds its tick', () => {
+    const steady = paths(draw({ wind: GALE })).length
+    const gusting = paths(draw({ wind: { gustKnots: 41, knots: 34, state: 'measured' } })).length
+
+    assert.equal(steady, paths(draw({ wind: CALM })).length + 2)
+    assert.equal(gusting, steady + 1)
+})
+
+test('the sock reaches further out the harder the wind blows', () => {
+    const reach = knots =>
+        Math.max(
+            ...paths(draw({ wind: { knots, state: 'measured' } }))
+                .at(-1)
+                .map(([x]) => x),
+        )
+
+    assert.ok(reach(34) > reach(15), 'the sock must lift with the wind, or it reports nothing')
+})
+
+// The reading is the icon's whole job, so it stays the largest thing on the square; what gives
+// way is a little of its size, so the corner mark is not drawn through the last digit.
+test('the reading shrinks to clear the corner trend mark', () => {
+    const typeHeight = wind => {
+        const { context } = recordingContext()
+        drawButtonIcon({ context, dewpointFahrenheit: 68, direction: 'steady', size: SIZE, wind })
+        return Number(context.font.match(/(\d+(?:\.\d+)?)px/)[1])
+    }
+
+    assert.ok(typeHeight(GALE) < typeHeight(CALM))
 })

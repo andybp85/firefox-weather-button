@@ -52,14 +52,26 @@ const run = async ({ fetch, stationId, storage = fakeStorage() }) => {
     return { action, painted, storage }
 }
 
-test('the button draws the dewpoint and the pressure trend from a live series', async () => {
+test('the button draws the dewpoint, the pressure trend, and the wind from a live series', async () => {
     const { calls, fetch } = stubFetch({ 'https://aviationweather.gov': fixture('kewr-rising') })
     const { action, painted } = await run({ fetch, stationId: 'KEWR' })
 
-    assert.deepEqual(painted, [{ dewpointFahrenheit: 58, direction: 'rising' }])
+    assert.deepEqual(painted, [{ dewpointFahrenheit: 58, direction: 'rising', wind: { state: 'calm' } }])
     assert.deepEqual(action.icons, [{ imageData: { 16: 'icon-58' } }])
-    assert.equal(action.titles.at(-1), 'Newark Intl, NJ, US — 58F dewpoint (comfortable), pressure rising')
+    assert.equal(action.titles.at(-1), 'Newark Intl, NJ, US — 58F dewpoint (comfortable), pressure rising, wind calm')
     assert.ok(calls.length > 0)
+})
+
+// No recorded fixture carries a gust, so the newest record of one is given the wind this case is
+// about. The rest of the series is left alone: the tendency still has to resolve from real data.
+test('the tooltip names the wind and its gust, whether or not the icon has room to draw it', async () => {
+    const series = fixture('kewr-rising')
+    const gusting = [{ ...series[0], wdir: 320, wgst: 27, wspd: 18 }, ...series.slice(1)]
+    const { fetch } = stubFetch({ 'https://aviationweather.gov': gusting })
+    const { action, painted } = await run({ fetch, stationId: 'KEWR' })
+
+    assert.match(action.titles.at(-1), /wind NW 18 kt G 27$/)
+    assert.deepEqual(painted.at(-1).wind, { direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
 })
 
 test('the button says so rather than showing a colour when no station is configured yet', async () => {
@@ -96,7 +108,7 @@ test('the button reads the cached series the popup left rather than fetching it 
     const { calls, fetch } = stubFetch({})
     const { painted } = await run({ fetch, stationId: 'KEWR', storage })
 
-    assert.deepEqual(painted, [{ dewpointFahrenheit: 58, direction: 'rising' }])
+    assert.deepEqual(painted, [{ dewpointFahrenheit: 58, direction: 'rising', wind: { state: 'calm' } }])
     assert.deepEqual(calls, [], 'a warm cache must not be re-fetched')
 })
 
