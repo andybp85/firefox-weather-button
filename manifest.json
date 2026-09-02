@@ -12,8 +12,12 @@
             }
         }
     },
-    "permissions": ["storage"],
+    "permissions": ["alarms", "storage"],
     "host_permissions": ["https://api.weather.gov/*", "https://aviationweather.gov/*"],
+    "background": {
+        "scripts": ["src/background.js"],
+        "type": "module"
+    },
     "action": {
         "default_title": "Weather detail",
         "default_popup": "src/popup.html",

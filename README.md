@@ -1,8 +1,40 @@
 # Firefox Weather Button
 
-A Firefox toolbar button that opens a popup with local weather detail.
+A Firefox toolbar button that shows the current dewpoint, coloured by how it feels, and
+opens a popup with local weather detail.
 
-## What it shows
+## The toolbar button
+
+The button icon is drawn, not fixed. It shows:
+
+- The dewpoint in whole degrees Fahrenheit.
+- A background colour for the comfort band that dewpoint falls in (see the table below).
+- A glyph for the 3-hour barometric pressure trend: an up arrow for a rise, a down arrow for
+  a fall, and a dash for steady.
+
+Point at the button to read the same values as text, with the station name and the comfort
+band written out.
+
+The button refreshes every 10 minutes, and again as soon as you save a different station. It
+shares its cache with the popup, so the two together make one set of requests, not two.
+
+When no station is set, and when no reading is available at all, the button shows the plain
+extension icon. The tooltip then states the reason. The button never shows a colour for a
+dewpoint that was not measured.
+
+### Comfort bands
+
+| Dewpoint (F) | Comfort level |
+| ------------ | ------------- |
+| below 50     | Dry           |
+| 50 to 55     | Pleasant      |
+| 56 to 60     | Comfortable   |
+| 61 to 65     | Sticky        |
+| 66 to 70     | Uncomfortable |
+| 71 to 75     | Oppressive    |
+| 76 and above | Miserable     |
+
+## What the popup shows
 
 The popup shows:
 
@@ -91,6 +123,11 @@ test suite runs the popup's rendering code against a simulated DOM (jsdom). It m
 requests: `fetch` and `browser.storage.local` are replaced with stubs, and the API responses
 come from recorded fixtures. These checks do not verify Gecko's own rendering, popup sizing, or
 the `browser.*` extension APIs.
+
+The toolbar icon has the same gap, and one more. Its drawing code was rendered to a canvas in
+a browser and checked at 16 and 32 pixels for every comfort band and every trend glyph, so the
+drawing is verified. What is not verified is the code that puts that drawing on the button: the
+`OffscreenCanvas` raster and the `browser.action.setIcon` call run only in Firefox.
 
 A one-off manual check against the live APIs, run outside a browser, is recorded in
 [`docs/verification-log.md`](docs/verification-log.md). Treat that log as a substitute for

@@ -7,6 +7,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Toolbar button icon drawn from the current reading: the dewpoint in figures, a background
+  colour for its comfort band (Dry through Miserable), and a glyph for the 3-hour pressure
+  trend. The tooltip states the same values as text.
+- Background page that refreshes the button every 10 minutes, on browser start, and whenever
+  the station changes. It reads through the same cache as the popup, so a refresh and a popup
+  open inside that window cost one set of requests between them.
+- `alarms` permission, for the refresh schedule.
+
+### Changed
+
+- The observation pipeline moved out of the popup entry point into `src/model.js`, so the
+  popup and the toolbar button read the same model through the same cache.
+
 ## [0.1.0] - 2026-08-26
 
 ### Added
