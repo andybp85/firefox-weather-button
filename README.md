@@ -121,8 +121,28 @@ npx web-ext lint
 ```
 
 `npm test` runs the unit test suite. `npm run lint:js` runs `oxlint` against `src` and `test`.
-`npm run format` runs `oxfmt` against the same paths. `npx web-ext lint` (also available as
-`npm run lint`) checks the manifest and packaged files against Firefox's add-on rules.
+`npm run format` runs `oxfmt` against `docs`, `src`, and `test`. `npx web-ext lint` (also available
+as `npm run lint`) checks the manifest and packaged files against Firefox's add-on rules.
+
+### Preview the toolbar icon
+
+[`docs/icon-preview.html`](docs/icon-preview.html) draws every case the button icon has — both
+layouts, both sides of the wind threshold, all three trend glyphs, and the readings that run to
+three characters — at the sizes Firefox asks for. It imports `src/button-icon.js` and decodes its
+winds through `src/wind.js`, so the page rasterises the shipping code rather than a copy of it.
+
+ES modules need an HTTP origin, so serve the repository root instead of opening the file:
+
+```bash
+npm run preview
+```
+
+Then open <http://127.0.0.1:8765/docs/icon-preview.html>.
+
+The first three columns are true device pixels, and the last two magnify the same rasters by whole
+numbers with smoothing off. Read the geometry off the blow-ups and judge legibility off the true
+sizes — on a 1x display, where the 16-pixel icon is hardest to read. The page is a development
+tool: `docs/` is excluded from the packaged extension.
 
 ## Verification
 

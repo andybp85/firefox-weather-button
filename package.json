@@ -9,9 +9,10 @@
         "start": "web-ext run --source-dir . --ignore-files \"node_modules/**\" \"docs/**\"",
         "lint": "web-ext lint --source-dir . --ignore-files \"node_modules/**\" \"test/**\" \"docs/**\"",
         "build": "web-ext build --source-dir . --overwrite-dest --ignore-files \"node_modules/**\" \"test/**\" \"docs/**\" \"package*.json\" \"*.md\"",
-        "format": "oxfmt src test",
-        "format:check": "oxfmt --check src test",
-        "lint:js": "oxlint"
+        "format": "oxfmt docs src test",
+        "format:check": "oxfmt --check docs src test",
+        "lint:js": "oxlint",
+        "preview": "python3 -m http.server 8765 --bind 127.0.0.1"
     },
     "devDependencies": {
         "jsdom": "^26.1.0",
