@@ -153,3 +153,13 @@ keeps reading the same key with no TTL on purpose.
 
 Environment note, unchanged: still no Firefox binary and no display. The Real-Firefox gap
 recorded under Task 10 remains open.
+
+## Toolbar button in a real Firefox — 2026-09-02
+
+The extension was loaded as a temporary add-on at `about:debugging` in Firefox Developer Edition.
+The maintainer confirms the toolbar icon renders and refreshes on its alarm schedule, and the
+popup renders in Firefox's own chrome.
+
+This closes the Real-Firefox gap left open under Task 9 and Task 10: the `OffscreenCanvas` raster
+and the `browser.action.setIcon` call run only in Gecko and had no automated coverage. Recorded
+from the maintainer's report; no transcript or screenshot was captured.

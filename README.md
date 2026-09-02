@@ -113,23 +113,15 @@ npx web-ext lint
 `npm run format` runs `oxfmt` against the same paths. `npx web-ext lint` (also available as
 `npm run lint`) checks the manifest and packaged files against Firefox's add-on rules.
 
-## Known limitation: unverified in a real Firefox
+## Verification
 
-The build environment for this project has no Firefox binary and no display. The popup's
-appearance and behavior in an actual Firefox window are unverified.
+The extension has been loaded in a real Firefox Developer Edition profile: the popup renders, and
+the toolbar icon rasters, paints, and refreshes on its alarm. Manual checks are recorded in
+[`docs/verification-log.md`](docs/verification-log.md).
 
-Automated checks stand in for that gap. `web-ext lint` passes with no errors or warnings. The
-test suite runs the popup's rendering code against a simulated DOM (jsdom). It makes no network
-requests: `fetch` and `browser.storage.local` are replaced with stubs, and the API responses
-come from recorded fixtures. These checks do not verify Gecko's own rendering, popup sizing, or
-the `browser.*` extension APIs.
-
-The toolbar icon has the same gap, and one more. Its drawing code was rendered to a canvas in
-a browser and checked at 16 and 32 pixels for every comfort band and every trend glyph, so the
-drawing is verified. What is not verified is the code that puts that drawing on the button: the
-`OffscreenCanvas` raster and the `browser.action.setIcon` call run only in Firefox.
-
-A one-off manual check against the live APIs, run outside a browser, is recorded in
-[`docs/verification-log.md`](docs/verification-log.md). Treat that log as a substitute for
-browser testing, not a replacement for it. Load the extension in a real Firefox Developer
-Edition profile before you rely on it day to day.
+The automated checks stop short of Gecko. `npm run lint` (`web-ext lint`) reports no errors and no
+warnings. The test suite runs the popup's rendering code against a simulated DOM (jsdom), and makes
+no network requests: `fetch` and `browser.storage.local` are replaced with stubs, and the API
+responses come from recorded fixtures. Nothing in that suite exercises Firefox's own rendering,
+popup sizing, or the `browser.*` extension APIs, so a change to those paths needs a run in a real
+profile before you trust it.
