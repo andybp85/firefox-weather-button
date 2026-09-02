@@ -80,10 +80,10 @@ The extension is not signed and is not on addons.mozilla.org. Load it as a tempo
 in Firefox Developer Edition.
 
 1. Download or clone this repository.
-2. Open Firefox Developer Edition.
-3. Go to `about:debugging#/runtime/this-firefox`.
-4. Click **Load Temporary Add-on**.
-5. Select the `manifest.json` file in the repository root.
+1. Open Firefox Developer Edition.
+1. Go to `about:debugging#/runtime/this-firefox`.
+1. Click **Load Temporary Add-on**.
+1. Select the `manifest.json` file in the repository root.
 
 A temporary add-on is removed when Firefox restarts. Repeat these steps after each restart.
 
@@ -93,8 +93,8 @@ The popup needs a reporting station near you.
 
 1. Open the extension's options page (right-click the toolbar button and select **Manage
    Extension**, then **Preferences**, or open it from `about:addons`).
-2. Enter a four-letter ICAO station identifier, for example `KEWR` for Newark.
-3. Click **Save**.
+1. Enter a four-letter ICAO station identifier, for example `KEWR` for Newark.
+1. Click **Save**.
 
 The options page checks the identifier against the live METAR feed before it saves. An
 unknown identifier shows an error instead.

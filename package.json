@@ -15,8 +15,13 @@
     },
     "devDependencies": {
         "jsdom": "^26.1.0",
+        "markdownlint-cli2": "0.23.2",
         "oxfmt": "0.63.0",
         "oxlint": "1.78.0",
+        "postcss-html": "2.0.0",
+        "stylelint": "17.14.1",
+        "stylelint-config-standard": "40.0.0",
+        "stylelint-order": "8.1.1",
         "web-ext": "^8.5.0"
     }
 }
