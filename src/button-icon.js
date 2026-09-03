@@ -1,130 +1,152 @@
+import { BEAUFORT, beaufortForce } from './beaufort.js'
 import { comfortBand } from './comfort.js'
-import { isNotable } from './wind.js'
-import { windsockPolygons } from './windsock.js'
+import { DIRECTIONLESS_RING, dartPoints } from './wind-dart.js'
+import { announcedKnots, isNotable } from './wind.js'
 
-// Every dimension is a fraction of the icon's edge. Firefox asks for this icon at both 16
-// and 32 device pixels and the two have to be the same drawing scaled, not two separately
-// hand-tuned ones that drift apart.
-const CORNER_RADIUS = 0.15
+// Every dimension below is in the 64-unit square the artboards were drawn in, scaled to the
+// edge Firefox asks for. Working in the artboard's own units keeps each number checkable
+// against the canvas, which fractions of the edge did not.
+const FACE = 64
+
+// Kit's toolbar-field indigo and its chrome text. The toolbar does not follow the page's colour
+// scheme, so these two are fixed literals rather than light-dark() pairs — and the button takes
+// the Beaufort ramp's dark side in both schemes for the same reason.
+const CHIP_INK = '#03083f'
+const CHROME_INK = '#e6e8ff'
+
+const CORNER_RADIUS = 9.6
 const FONT_STACK = 'system-ui, sans-serif'
 
-// The two layouts the square is drawn in. A wind worth announcing takes the bottom band for the
-// sock and pushes the trend into the top-right corner; anything less leaves the icon exactly as
-// it was, down to the call, because the ordinary icon is the one people learn to read.
-const BAND_LAYOUT = {
-    reading: { em: 0.6, x: 0.5, y: 0.35 },
-    trend: { halfWidth: 0.25, heightScale: 1, x: 0.5, y: 0.8 },
-}
-// Every figure here is the toolbar's 16px square talking, not taste: the reading gives up a
-// little size and shifts left to clear the corner mark, the corner mark stays inboard of the
-// chip's rounded corner, and the sock's pivot and reach keep the mast, the cone at every lift,
-// and the gust tick that flies past it inside the square. The test at 16px holds the last of it.
-const WIND_LAYOUT = {
-    reading: { em: 0.5, x: 0.4, y: 0.28 },
-    sock: { origin: { x: 0.1, y: 0.54 }, scale: 0.35 },
-    // The corner mark keeps more of its height than of its width. Scaled down in proportion, the
-    // steady dash came out three quarters of a device pixel tall at 16px and rendered as a smudge;
-    // a slightly chunkier arrow is the price of the three glyphs still being told apart.
-    trend: { halfWidth: 0.12, heightScale: 0.7, x: 0.8, y: 0.16 },
+// The comfort colour takes the bottom strip rather than the whole chip. It still reads at a
+// glance, and the rest of the face is free for the reading or the wind mark — which is what
+// lets the numerals give way to the dart without the dewpoint going unreported.
+const BAND = { height: 14, top: 50 }
+
+const READING = { em: 34, x: 32, y: 25 }
+
+// Cut into the band in the chip's own ink, so the glyph is the band showing through. Paths, not
+// the characters up-arrow, down-arrow, dash: at 16 device pixels a font's hinting decides how
+// much ink lands on the three pixels the band is tall, and the three do not come out the same
+// weight as each other. The steady dash keeps 0.4545 of the triangles' height, the ratio the
+// shipped corner mark used — in proportion it came out under a pixel tall and read as a smudge.
+const TREND_GLYPHS = {
+    falling: [
+        [24, 52.5],
+        [40, 52.5],
+        [32, 61.5],
+    ],
+    rising: [
+        [32, 52.5],
+        [40, 61.5],
+        [24, 61.5],
+    ],
+    steady: [
+        [24, 55],
+        [40, 55],
+        [40, 59],
+        [24, 59],
+    ],
 }
 
-// Glyph outlines in unit coordinates about their own centre, scaled by the half-width and
-// half-height below. They are drawn as paths rather than typed as ↑ ↓ —, because at this
-// size a font's hinting decides how much ink lands on the three device pixels the band is
-// tall, and the three characters do not come out the same weight as each other. Steady is
-// the chart's dash: an arrow with no direction to point reads as a broken up-arrow.
-const TREND_GLYPHS = {
-    falling: {
-        halfHeight: 0.11,
-        points: [
-            [-1, -1],
-            [1, -1],
-            [0, 1],
-        ],
-    },
-    rising: {
-        halfHeight: 0.11,
-        points: [
-            [-1, 1],
-            [1, 1],
-            [0, -1],
-        ],
-    },
-    steady: {
-        halfHeight: 0.05,
-        points: [
-            [-1, -1],
-            [1, -1],
-            [1, 1],
-            [-1, 1],
-        ],
-    },
-}
+// Filled and stroked in the same colour: the stroke's round joins take the corners off the
+// vertices, which is what keeps the dart from reading as a paper aeroplane at 16 pixels.
+const DART_STROKE = 2
 
 // Two digits is the ordinary reading and gets the largest type the layout holds. A third
 // character — a subfreezing '-4' rounds to two, but '-12' does not — shrinks the type in
-// proportion instead of overflowing. Measuring the string would fit each one tighter, but
-// then consecutive readings render at visibly different sizes, which looks like a bug.
+// proportion instead of overflowing. Measuring the string would fit each one tighter, but then
+// consecutive readings render at visibly different sizes, which looks like a bug.
 const readingEm = ({ characters, em }) => (characters <= 2 ? em : (em * 2) / characters)
 
-const fillPolygon = ({ context, points }) => {
+const tracePolygon = ({ context, points }) => {
     const [start, ...rest] = points
     context.beginPath()
     context.moveTo(start.x, start.y)
     for (const point of rest) context.lineTo(point.x, point.y)
     context.closePath()
+}
+
+const fillPolygon = ({ context, points }) => {
+    tracePolygon({ context, points })
     context.fill()
 }
 
-const drawTrend = ({ context, direction, size, trend }) => {
-    const glyph = TREND_GLYPHS[direction]
-    // resolveTendency only ever names these three, so an unknown one is a wiring error and
-    // not a reading the button should quietly draw without its trend.
-    if (glyph === undefined) throw new Error(`cannot draw an unknown pressure trend: ${direction}`)
-
-    const points = glyph.points.map(([x, y]) => ({
-        x: size * (trend.x + x * trend.halfWidth),
-        y: size * (trend.y + y * glyph.halfHeight * trend.heightScale),
-    }))
-
-    fillPolygon({ context, points })
-}
-
-// Drawn in the same order every time — gust tick, mast, then cone — so the shapes a test reads
-// back off the context are identified by their position in the sequence.
-const drawWindsock = ({ context, size, wind }) => {
-    const { origin, scale } = WIND_LAYOUT.sock
-    const polygons = windsockPolygons({
-        gusting: wind.gustKnots !== undefined,
-        knots: wind.knots,
-        origin: { x: size * origin.x, y: size * origin.y },
-        scale: size * scale,
-    })
-
-    for (const points of Object.values(polygons)) fillPolygon({ context, points })
-}
-
-// Paints one square of the toolbar icon at the given edge length. The caller owns the
-// canvas: this draws, and never reads the context back, so the same code serves both the
-// extension's OffscreenCanvas and the preview page.
-export const drawButtonIcon = ({ context, dewpointFahrenheit, direction, size, wind }) => {
-    const { background, foreground } = comfortBand(dewpointFahrenheit)
-    const windy = isNotable(wind)
-    const { reading: readingLayout, trend } = windy ? WIND_LAYOUT : BAND_LAYOUT
-    const reading = String(dewpointFahrenheit)
-
-    context.clearRect(0, 0, size, size)
+const drawBand = ({ background, context, size, unit }) => {
     context.fillStyle = background
     context.beginPath()
-    context.roundRect(0, 0, size, size, size * CORNER_RADIUS)
+    // Only the lower corners are rounded: the band follows the chip's own corner there and sits
+    // flush against the face above it.
+    context.roundRect(0, BAND.top * unit, size, BAND.height * unit, [0, 0, CORNER_RADIUS * unit, CORNER_RADIUS * unit])
     context.fill()
+}
 
-    context.fillStyle = foreground
-    context.font = `bold ${size * readingEm({ characters: reading.length, em: readingLayout.em })}px ${FONT_STACK}`
+const drawTrend = ({ context, direction, unit }) => {
+    const glyph = TREND_GLYPHS[direction]
+    // resolveTendency only ever names these three, so an unknown one is a wiring error and not
+    // a reading the button should quietly draw without its trend.
+    if (glyph === undefined) throw new Error(`cannot draw an unknown pressure trend: ${direction}`)
+
+    context.fillStyle = CHIP_INK
+    fillPolygon({ context, points: glyph.map(([x, y]) => ({ x: x * unit, y: y * unit })) })
+}
+
+const drawReading = ({ context, dewpointFahrenheit, unit }) => {
+    const reading = String(dewpointFahrenheit)
+
+    context.fillStyle = CHROME_INK
+    context.font = `bold ${unit * readingEm({ characters: reading.length, em: READING.em })}px ${FONT_STACK}`
     context.textAlign = 'center'
     context.textBaseline = 'middle'
-    context.fillText(reading, size * readingLayout.x, size * readingLayout.y)
+    context.fillText(reading, READING.x * unit, READING.y * unit)
+}
 
-    drawTrend({ context, direction, size, trend })
-    if (windy) drawWindsock({ context, size, wind })
+// A wind with no bearing still has a speed, so the colour still reports it and nothing on the
+// face claims a heading the station never sent. The panel answers the same case with barbs and
+// no shaft; the two surfaces say "speed, no direction" in their own grammars.
+const drawWindRing = ({ colour, context, unit }) => {
+    context.strokeStyle = colour
+    context.lineWidth = DIRECTIONLESS_RING.stroke * unit
+    context.beginPath()
+    context.arc(READING.x * unit, READING.y * unit, DIRECTIONLESS_RING.radius * unit, 0, 2 * Math.PI)
+    context.stroke()
+}
+
+const drawDart = ({ colour, context, fromDegrees, unit }) => {
+    context.fillStyle = colour
+    context.strokeStyle = colour
+    context.lineJoin = 'round'
+    context.lineWidth = DART_STROKE * unit
+    tracePolygon({
+        context,
+        points: dartPoints({ centre: { x: READING.x * unit, y: READING.y * unit }, fromDegrees, scale: unit }),
+    })
+    context.fill()
+    context.stroke()
+}
+
+const drawWind = ({ context, unit, wind }) => {
+    const colour = BEAUFORT[beaufortForce(announcedKnots(wind))].dark
+
+    if (wind.bearingDegrees === undefined) drawWindRing({ colour, context, unit })
+    else drawDart({ colour, context, fromDegrees: wind.bearingDegrees, unit })
+}
+
+// Paints one square of the toolbar icon at the given edge length. The caller owns the canvas:
+// this draws, and never reads the context back, so the same code serves both the extension's
+// OffscreenCanvas and the preview page.
+export const drawButtonIcon = ({ context, dewpointFahrenheit, direction, size, wind }) => {
+    const { background } = comfortBand(dewpointFahrenheit)
+    const unit = size / FACE
+
+    context.clearRect(0, 0, size, size)
+    context.fillStyle = CHIP_INK
+    context.beginPath()
+    context.roundRect(0, 0, size, size, CORNER_RADIUS * unit)
+    context.fill()
+
+    drawBand({ background, context, size, unit })
+    drawTrend({ context, direction, unit })
+
+    if (isNotable(wind)) drawWind({ context, unit, wind })
+    else drawReading({ context, dewpointFahrenheit, unit })
 }

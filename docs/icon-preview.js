@@ -14,28 +14,53 @@ const MAGNIFIED = [
 
 // One row per case, each written as the METAR fields the station sends rather than as a decoded
 // wind, so the page exercises toWind() on the way in and reads the same wording the popup does.
-// The set covers both layouts, both sides of the 15 kt threshold, all three trend glyphs, the
-// lift ladder from a hanging sock to a fully flown one, and the readings that run to three
-// characters and shrink the type.
+// The set covers both sides of the 15 kt threshold that hands the face to the dart, both sides
+// of the 10 kt gust margin that decides the dart's colour, the directionless ring, all three
+// trend glyphs, and the readings that run to three characters and shrink the type.
 const CASES = [
-    { dewpointFahrenheit: 48, direction: 'steady', metar: {}, note: 'Nothing measured — the plain icon' },
+    { dewpointFahrenheit: 48, direction: 'steady', metar: {}, note: 'Nothing measured — numerals and the band' },
     { dewpointFahrenheit: 53, direction: 'rising', metar: { wdir: 210, wspd: 0 }, note: 'Calm air, measured and still' },
-    { dewpointFahrenheit: 58, direction: 'falling', metar: { wdir: 40, wspd: 8 }, note: 'Light wind keeps the plain icon' },
     { dewpointFahrenheit: 58, direction: 'falling', metar: { wdir: 40, wspd: 14 }, note: 'One knot under the threshold' },
-    { dewpointFahrenheit: 63, direction: 'steady', metar: { wdir: 40, wspd: 15 }, note: 'At the threshold — the sock takes the band' },
-    { dewpointFahrenheit: 63, direction: 'rising', metar: { wdir: 190, wspd: 18 }, note: 'The same layout, rising' },
-    { dewpointFahrenheit: 68, direction: 'falling', metar: { wdir: 'VRB', wgst: 21, wspd: 6 }, note: 'A gust promotes a light wind' },
-    { dewpointFahrenheit: 73, direction: 'rising', metar: { wdir: 300, wgst: 34, wspd: 22 }, note: 'Half lift, gusting' },
+    { dewpointFahrenheit: 58, direction: 'falling', metar: { wdir: 40, wspd: 15 }, note: 'At the threshold — the dart takes the face' },
+    { dewpointFahrenheit: 63, direction: 'steady', metar: { wdir: 202.5, wspd: 15 }, note: 'SSW 15, force 4' },
+    {
+        dewpointFahrenheit: 63,
+        direction: 'rising',
+        metar: { wdir: 292.5, wgst: 31, wspd: 22 },
+        note: 'Gust 9 over — sustained keeps the colour',
+    },
+    {
+        dewpointFahrenheit: 68,
+        direction: 'falling',
+        metar: { wdir: 270, wgst: 32, wspd: 18 },
+        note: 'Gust 14 over — the gust takes the colour',
+    },
+    {
+        dewpointFahrenheit: 73,
+        direction: 'steady',
+        metar: { wdir: 180, wgst: 65, wspd: 55 },
+        note: 'Gust exactly 10 over — still sustained',
+    },
     {
         dewpointFahrenheit: 78,
-        direction: 'steady',
-        metar: { wdir: 330, wgst: 60, wspd: 45 },
-        note: 'Full lift — the sock cannot rise past this',
+        direction: 'rising',
+        metar: { wdir: 'VRB', wgst: 21, wspd: 6 },
+        note: 'A gust promotes a wind with no heading',
     },
-    { dewpointFahrenheit: -4, direction: 'falling', metar: { wdir: 20, wspd: 20 }, note: 'Subfreezing, two characters' },
-    { dewpointFahrenheit: -12, direction: 'rising', metar: { wdir: 20, wgst: 40, wspd: 26 }, note: 'Three characters shrink the type' },
-    { dewpointFahrenheit: 100, direction: 'steady', metar: { wdir: 160, wspd: 30 }, note: 'Three characters, no minus' },
+    { dewpointFahrenheit: -4, direction: 'falling', metar: { wdir: 20, wspd: 8 }, note: 'Subfreezing, two characters' },
+    { dewpointFahrenheit: -12, direction: 'rising', metar: {}, note: 'Three characters shrink the type' },
+    { dewpointFahrenheit: 100, direction: 'steady', metar: { wdir: 160, wspd: 4 }, note: 'Three characters, no minus' },
 ]
+
+// The sixteen compass points at one speed. The dart's sense is the one thing about this mark a
+// reader can get backwards, so it gets a sweep to check against: a wind from the north points
+// down the face, because the dart flies downwind.
+const COMPASS_CASES = [...Array(16).keys()].map(step => ({
+    dewpointFahrenheit: 60,
+    direction: 'steady',
+    metar: { wdir: step * 22.5, wspd: 20 },
+    note: 'Compass sweep',
+}))
 
 // A canvas is only honest about a 16-device-pixel icon when one backing pixel lands on one
 // device pixel. On a 2x display that is 8 CSS pixels wide, which looks wrong on the page and is
@@ -105,7 +130,7 @@ const toExample = ({ dewpointFahrenheit, direction, metar, note }) => {
     return { dewpointFahrenheit, direction, label: `${dewpointFahrenheit}F ${direction} ${describeWind(wind)}`, note, wind }
 }
 
-const examples = CASES.map(toExample)
+const examples = [...CASES, ...COMPASS_CASES].map(toExample)
 document.getElementById('cases').append(...examples.map(row))
 document.getElementById('scale-note').textContent =
     `This display reports a device pixel ratio of ${devicePixelRatio}, so a 16-pixel icon is drawn ` +

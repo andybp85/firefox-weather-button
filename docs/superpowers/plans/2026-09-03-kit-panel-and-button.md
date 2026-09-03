@@ -461,7 +461,7 @@ git commit -m "feat: add the compass dart geometry for the toolbar button"
   and `DIRECTIONLESS_RING` from Task 3.
 - Produces: `drawButtonIcon({ context, dewpointFahrenheit, direction, size, wind })`, signature unchanged.
 
-- [ ] **Step 1: Replace the test file**
+- [x] **Step 1: Replace the test file**
 
 Replace `test/button-icon.test.js` entirely:
 
@@ -636,7 +636,9 @@ test('drawButtonIcon rings the centre for a notable wind with no bearing', () =>
     const [ring] = only({ calls, name: 'arc' })
 
     assert.deepEqual({ radius: ring.radius, x: ring.x, y: ring.y }, { radius: 10, x: 32, y: 25 })
-    assert.equal(ring.strokeStyle, '#6cc8f7')
+    // The gust is 15 over the sustained 6, so the announced speed is 21 and the ring takes force
+    // 5. The ring reports the same speed the dart would have; only the heading is withheld.
+    assert.equal(ring.strokeStyle, '#c8f640')
     assert.equal(ring.lineWidth, 6)
     assert.equal(paths(calls).length, 1)
 })
@@ -650,12 +652,12 @@ test('drawButtonIcon scales the whole face, so 16 and 32 are one drawing at two 
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern drawButtonIcon`
 Expected: FAIL. The chip still floods with the comfort colour and there is no band.
 
-- [ ] **Step 3: Rewrite the module**
+- [x] **Step 3: Rewrite the module**
 
 Replace `src/button-icon.js`:
 
@@ -814,12 +816,12 @@ export const drawButtonIcon = ({ context, dewpointFahrenheit, direction, size, w
 }
 ```
 
-- [ ] **Step 4: Run the tests and watch them pass**
+- [x] **Step 4: Run the tests and watch them pass**
 
 Run: `npm test -- --test-name-pattern drawButtonIcon`
 Expected: PASS, 12 tests.
 
-- [ ] **Step 5: Rebuild the preview's case list**
+- [x] **Step 5: Rebuild the preview's case list**
 
 In `docs/icon-preview.js`, replace the `CASES` array and its comment with:
 
@@ -861,7 +863,7 @@ Change the final assembly line from `const examples = CASES.map(toExample)` to:
 const examples = [...CASES, ...COMPASS_CASES].map(toExample)
 ```
 
-- [ ] **Step 6: Look at the preview**
+- [x] **Step 6: Look at the preview**
 
 ```bash
 npm run preview
@@ -870,7 +872,7 @@ npm run preview
 Open <http://127.0.0.1:8765/docs/icon-preview.html>. Confirm the compass sweep reads as a clock face, the notch is
 legible in all three trends, and the ring row shows a ring rather than a dart. Stop the server.
 
-- [ ] **Step 7: Format, lint, commit**
+- [x] **Step 7: Format, lint, commit**
 
 ```bash
 npm run format
