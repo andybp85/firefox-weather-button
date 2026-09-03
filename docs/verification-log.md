@@ -163,3 +163,24 @@ popup renders in Firefox's own chrome.
 This closes the Real-Firefox gap left open under Task 9 and Task 10: the `OffscreenCanvas` raster
 and the `browser.action.setIcon` call run only in Gecko and had no automated coverage. Recorded
 from the maintainer's report; no transcript or screenshot was captured.
+
+## Kit panel and button — the gap is open again, 2026-09-03
+
+The plaque panel and the compass-dart button replaced both surfaces that the entry above covers.
+That entry no longer describes what ships, so the Real-Firefox gap is open again.
+
+No session on this branch had a browser or a display. Every geometry check was numeric. The
+plaque plots were rendered under jsdom and their emitted coordinates were read back. The button's
+rasters were derived from `button-icon.js` rather than looked at. `docs/icon-preview.html` draws
+the button's cases, but it needs a browser, and nobody has run it.
+
+Two things need a real profile before you trust them:
+
+- The dart at 16 device pixels on an actual toolbar. It is about 8 px long and 6 px wide there.
+  Bean `firefox-weather-button-4q55` tracks this check, and `firefox-weather-button-sp40` (the
+  bottom-band decision) is blocked on it.
+- The panel in Firefox's own popup chrome, at 304 px wide, in both colour schemes.
+
+One contrast exception ships with this work, and it is a known one. Force 12's dark colour sits
+at 4.15:1 on `--tile`, under the 4.5:1 that AA asks for the gust text at 11 px. `src/beaufort.js`
+records why. No session has seen that case rendered.
