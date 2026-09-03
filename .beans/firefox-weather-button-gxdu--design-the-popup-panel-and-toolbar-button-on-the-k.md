@@ -1,11 +1,11 @@
 ---
 # firefox-weather-button-gxdu
 title: Design the popup panel and toolbar button on the Kit theme
-status: in-progress
+status: completed
 type: feature
 priority: normal
 created_at: 2026-09-02T22:03:33Z
-updated_at: 2026-09-03T12:21:51Z
+updated_at: 2026-09-03T12:30:05Z
 ---
 
 Design canvas exploring panel and button directions on Kit Developer Edition tokens. Goal: weather readable at a glance, not dated. References: weather.gov, Weather Underground, plus novel concepts.
@@ -17,7 +17,7 @@ Design canvas exploring panel and button directions on Kit Developer Edition tok
 - [x] Round 4: dewpoint and cloud base swapped onto the top row with pressure below; dewpoint reading centred at 58 px; cloud base plaque shrunk to 112 px; button plot scaled so no direction reaches the face edge or comfort band (2026-09-03)
 - [x] Round 5: both button questions settled (2026-09-03). Colour follows the gust when it is more than 10 kt above the sustained speed, else the sustained speed. Barbs and pennant dropped from the button: an arrow gives direction, the colour gives speed
 - [x] Light-scheme pass on the Beaufort ramp only (2026-09-03, WindPlaquesLight.dc.html on page 1) (no full light mockup: the panel's tokens already switch through light-dark(), and the button face is dark indigo in both schemes). Measure the 13 chip colours against the light plaque; where a force fails AA for its 11 px gust text, pick a light-scheme partner colour for it. The greens and yellows (forces 4–8) are the expected failures
-- [ ] Hand off to implementation (spec)
+- [x] Hand off to implementation (spec): docs/superpowers/specs/2026-09-03-kit-panel-and-button-design.md (2026-09-03)
 
 Canvas: https://claude.ai/code/artifact/57afcd6c-62e7-4886-90df-501611581e30 (working files in the session scratchpad; recoverable from the artifact with the design helper's --extract)
 
@@ -30,3 +30,7 @@ Round 4 notes: button plot centre (32, 25) in the 64-unit face, shaft 16.5, barb
 Round 5 notes: button arrow flies downwind (map convention; the panel's barbs still point toward where the wind comes from — flip if that grates). Geometry in the 64-unit face: centre (32, 25), tail 18 back, tip 18 forward, shaft stroke 6 with round caps, head 12 long and 16 wide; worst-case reach 21 against 25 to the top edge and the comfort band. Colour rule: force(gust) when gust minus sustained > 10 kt, else force(sustained); the numerals-to-arrow trigger is unchanged (sustained >= 15 kt or any gust). Samples on the artboard: SSW 15 (F4), WNW 22 G 31 (gust +9, F6), W 18 G 32 (gust +14, F7), S 55 G 65 (gust +10, not more, F10). Generator: gen-button.mjs in the session scratchpad. Still to check on a real toolbar: the 16 px dart is about 8 px long and 6 px wide; direction and colour read in the local preview.
 
 Light-scheme notes: all thirteen chart colours fail AA on the light plaque (--tile #e6eafb): 1.00–2.83 against 4.5. Light partners keep each force's OKLCH hue, hold chroma where the sRGB gamut allows, and lower lightness to okL 0.52, the first step where every force clears 4.5 on --tile (4.2 on --bg, touched only by plot strokes; 2.6 on --raised, so never text there). Force 0–12: #056eb2 #02729b #25766d #017c02 #287a03 #5a7203 #5e7216 #6f6d03 #7b6902 #856502 #a65324 #b14a02 #c13900. Cost: yellows go olive, greens go forest — a scorched daybreak ramp. Implementation: one light-dark() pair per force. Button unaffected (dark face in both schemes). Scripts light_ramp.py and make_light.py in the session scratchpad; Chrome's auto-dark inverted the local preview, so the light artboard was checked by construction (token map complete, no unmapped hex) and by the numbers, not by eye.
+
+## Summary of Changes
+
+Design settled on the canvas (Plaques panel + Band button with the compass dart in the Beaufort colour, light partners for the ramp). The implementation spec is at docs/superpowers/specs/2026-09-03-kit-panel-and-button-design.md: every geometry number lifted from the artboards and checked by construction (cloud scale, barb angle and slots, dart vertices, needle angle), the Beaufort ramp in both schemes, module map, tests, and four open decisions (high-cloud colour threshold, notable wind with no bearing, dart sense, 16 px legibility on a real toolbar). Artboards are not tracked in the repo — the HTML gate rejects their custom elements — so the canvas stays the geometry reference, recoverable with the design helper's --extract.
