@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: normal
 created_at: 2026-09-02T22:03:33Z
-updated_at: 2026-09-03T12:11:22Z
+updated_at: 2026-09-03T12:17:39Z
 ---
 
 Design canvas exploring panel and button directions on Kit Developer Edition tokens. Goal: weather readable at a glance, not dated. References: weather.gov, Weather Underground, plus novel concepts.
@@ -16,7 +16,7 @@ Design canvas exploring panel and button directions on Kit Developer Edition tok
 - [x] Round 3: pressure scale labels moved below the arc; Beaufort colour on the panel wind plot, speed and gust; button barb in Beaufort colour with no gust layer (2026-09-03)
 - [x] Round 4: dewpoint and cloud base swapped onto the top row with pressure below; dewpoint reading centred at 58 px; cloud base plaque shrunk to 112 px; button plot scaled so no direction reaches the face edge or comfort band (2026-09-03)
 - [x] Round 5: both button questions settled (2026-09-03). Colour follows the gust when it is more than 10 kt above the sustained speed, else the sustained speed. Barbs and pennant dropped from the button: an arrow gives direction, the colour gives speed
-- [ ] Build the chosen direction into the final mockup, dark and light
+- [ ] Light-scheme pass on the Beaufort ramp only (no full light mockup: the panel's tokens already switch through light-dark(), and the button face is dark indigo in both schemes). Measure the 13 chip colours against the light plaque; where a force fails AA for its 11 px gust text, pick a light-scheme partner colour for it. The greens and yellows (forces 4–8) are the expected failures
 - [ ] Hand off to implementation (spec)
 
 Canvas: https://claude.ai/code/artifact/57afcd6c-62e7-4886-90df-501611581e30 (working files in the session scratchpad; recoverable from the artifact with the design helper's --extract)
