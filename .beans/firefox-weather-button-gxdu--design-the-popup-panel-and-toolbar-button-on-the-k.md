@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: normal
 created_at: 2026-09-02T22:03:33Z
-updated_at: 2026-09-03T12:06:12Z
+updated_at: 2026-09-03T12:11:22Z
 ---
 
 Design canvas exploring panel and button directions on Kit Developer Edition tokens. Goal: weather readable at a glance, not dated. References: weather.gov, Weather Underground, plus novel concepts.
@@ -27,4 +27,4 @@ Round 3 notes: Beaufort colours sampled from Andy's chart, thresholds in knots (
 
 Round 4 notes: button plot centre (32, 25) in the 64-unit face, shaft 16.5, barbs 7 at 60°, spacing 2.5, pennant base 3.2, stroke 4 — worst-case reach 22.9 against 25 to the top edge and to the comfort band. Cloud plaque: ground 6 above the foot, 30,000 ft at the text block's bottom (y 66), square-root scale, puff heights ×0.72; the five-skies sheet uses the same plaque. Open: gust vs sustained for the button colour; 16 px legibility on a real toolbar (barbs now under two device pixels).
 
-Round 5 notes: button arrow flies downwind (map convention; the panel's barbs still point toward where the wind comes from — flip if that grates). Geometry in the 64-unit face: centre (32, 25), tail 18 back, tip 18 forward, shaft stroke 6 with round caps, head 12 long and 16 wide; worst-case reach 21 against 25 to the top edge and the comfort band. Colour rule: force(gust) when gust minus sustained > 10 kt, else force(sustained); the numerals-to-arrow trigger is unchanged (sustained >= 15 kt or any gust). Samples on the artboard: SSW 15 (F4), WNW 22 G 31 (gust +9, F6), W 18 G 32 (gust +14, F7), S 55 G 65 (gust +10, not more, F10). Generator: gen-button.mjs in the session scratchpad. Still to check on a real toolbar: the 16 px arrow is about 9 px long with a 1.5 px shaft; direction and colour read in the local preview.
+Round 5 notes: button arrow flies downwind (map convention; the panel's barbs still point toward where the wind comes from — flip if that grates). Geometry in the 64-unit face: centre (32, 25), tail 18 back, tip 18 forward, shaft stroke 6 with round caps, head 12 long and 16 wide; worst-case reach 21 against 25 to the top edge and the comfort band. Colour rule: force(gust) when gust minus sustained > 10 kt, else force(sustained); the numerals-to-arrow trigger is unchanged (sustained >= 15 kt or any gust). Samples on the artboard: SSW 15 (F4), WNW 22 G 31 (gust +9, F6), W 18 G 32 (gust +14, F7), S 55 G 65 (gust +10, not more, F10). Generator: gen-button.mjs in the session scratchpad. Still to check on a real toolbar: the 16 px dart is about 8 px long and 6 px wide; direction and colour read in the local preview.
