@@ -321,7 +321,7 @@ git commit -m "feat: carry the wind's bearing and announce the speed that colour
 - Produces: `dartPoints({ centre: { x, y }, fromDegrees: number, scale: number }) → [{ x, y } × 4]`, wound tip, right
   wing, tail notch, left wing; `DIRECTIONLESS_RING = { radius: 10, stroke: 6 }` in 64-unit face units.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/wind-dart.test.js`:
 
@@ -377,12 +377,12 @@ test('dartPoints scales the face about the centre it is given', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern dartPoints`
 Expected: FAIL, `Cannot find module '../src/wind-dart.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/wind-dart.js`:
 
@@ -430,12 +430,12 @@ export const dartPoints = ({ centre, fromDegrees, scale }) => {
 }
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern dartPoints`
 Expected: PASS, 4 tests. The worst reach is 19.11, the wings' `hypot(14, 13)`.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
