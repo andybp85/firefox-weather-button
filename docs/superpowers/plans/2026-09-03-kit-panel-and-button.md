@@ -2504,7 +2504,7 @@ git commit -m "feat: draw the pressure plaque's barometer and trend glyph"
 - Consumes: `cloudSky` from Task 6; `cloudLayers` from Task 7.
 - Produces: nothing new exported. `render` now fills `#sky`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `test/popup.test.js`:
 
@@ -2555,26 +2555,38 @@ test('render colours a high layer a step further away than a low one', () => {
     assert.deepEqual({ high, low }, { high: 'layer-far', low: 'layer-near' })
 })
 
-test('renderUnavailable leaves the sky empty rather than dashing a base it does not have', () => {
-    const document = popupDocument()
-    renderUnavailable({ document, reason: 'no station configured yet' })
+test('render paints the computed base over the layers rather than under them', () => {
+    // An overcast lid runs from its own height down to the foot, so a base drawn under the
+    // layers would be buried by one — and the base is the reading the plaque is named for.
+    const document = rendered(observed({ cloudBaseFeet: 400, cloudLayers: [{ baseFeet: 400, cover: 'OVC' }] }))
 
-    assert.equal(document.querySelector('#sky').children.length, 0)
+    assert.equal(document.querySelector('#sky').lastElementChild.getAttribute('class'), 'computed-base')
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+The unavailable state has no test of its own: a standalone one built on `popupDocument()` passes with no
+implementation at all, because a fresh document's `#sky` is already empty. Add the assertion to the existing
+`renderUnavailable strikes the instruments a successful render left standing`, which renders first, so it fails
+when `render` fills the sky and `renderUnavailable` leaves it standing:
+
+```js
+    // The sky goes with them: a dashed base left standing is a reading the popup no longer has.
+    assert.equal(document.querySelector('#sky').children.length, 0)
+```
+
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "sky|computed base|layer"`
 Expected: FAIL, `#sky line` is null.
 
-- [ ] **Step 3: Style the sky**
+- [x] **Step 3: Style the sky**
 
 Inside `.plaque-cloud` in `src/ui.css`, after the `.sky` rule:
 
 ```css
-    /* --cloud is a rule and dash colour, never text — see palette.md — which is exactly what
-       the computed base is: a line drawn across a picture, not a reading to be read off it. */
+    /* --cloud is a rule and dash colour, never text — see the kit palette — which is exactly
+       what the computed base is: a line drawn across a picture, not a reading to be read off
+       it. It is painted last, over the layers, so an overcast lid cannot bury it. */
     .computed-base {
         stroke: var(--cloud);
         stroke-dasharray: 4 4;
@@ -2582,7 +2594,7 @@ Inside `.plaque-cloud` in `src/ui.css`, after the `.sky` rule:
     }
 
     /* Distance by tone: a layer at or above the atlas's low/mid boundary sits a step further
-       back than the plaque's own ground, and one below it a step nearer. */
+       back than the plaque's own tile, and one below it a step nearer. */
     .layer-far {
         fill: var(--panel);
     }
@@ -2592,7 +2604,7 @@ Inside `.plaque-cloud` in `src/ui.css`, after the `.sky` rule:
     }
 ```
 
-- [ ] **Step 4: Draw the sky**
+- [x] **Step 4: Draw the sky**
 
 In `src/popup.js`, add the import at the top:
 
@@ -2600,7 +2612,8 @@ In `src/popup.js`, add the import at the top:
 import { cloudSky } from './cloud-sky.js'
 ```
 
-Add above `renderComfort`:
+Add below `renderComfort` and above `renderWind`, so the file keeps the plaques' page order (`buildSvg` is
+already defined near the top of the file, beside `buildUnit` — reuse it, do not redefine it):
 
 ```js
 // One layer's shapes, all three lists always present, so this never branches on which kind of
@@ -2618,7 +2631,9 @@ const buildLayer = ({ circles, document, ellipses, far, rects }) => {
 
 // The computed base is drawn on every sky, including a clear one: it is the plaque's own
 // reading, and hiding it when nothing was reported would hide it exactly when it is the only
-// cloud information there is. Layers land over it, high to low, so the near deck paints last.
+// cloud information there is. The layers go down first, high to low so the near deck paints over
+// the far one, and the base goes over all of them — an overcast lid runs from its own height to
+// the foot of the plot, and would otherwise bury the one line the plaque is named for.
 const renderSky = ({ cloudBaseFeet, cloudLayers, document }) => {
     const { base, layers } = cloudSky({ baseFeet: cloudBaseFeet, layers: cloudLayers })
     const dash = buildSvg({
@@ -2627,7 +2642,7 @@ const renderSky = ({ cloudBaseFeet, cloudLayers, document }) => {
         name: 'line',
     })
 
-    document.querySelector(SELECTORS.sky).replaceChildren(dash, ...layers.flatMap(layer => buildLayer({ ...layer, document })))
+    document.querySelector(SELECTORS.sky).replaceChildren(...layers.flatMap(layer => buildLayer({ ...layer, document })), dash)
 }
 ```
 
@@ -2637,18 +2652,19 @@ Call it in `render`, above the cloud-base reading:
     renderSky({ cloudBaseFeet: observation.cloudBaseFeet, cloudLayers: observation.cloudLayers, document })
 ```
 
-In `renderUnavailable`, empty it beside the barometer:
+In `renderUnavailable`, empty it above the cloud-base reading — cloudSky throws without a base and a layer
+list, and this plot has no fixed furniture, so an empty `<g>` is its ground:
 
 ```js
     document.querySelector(SELECTORS.sky).replaceChildren()
 ```
 
-- [ ] **Step 5: Run the tests and watch them pass**
+- [x] **Step 5: Run the tests and watch them pass**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 6: Format, lint, commit**
+- [x] **Step 6: Format, lint, commit**
 
 ```bash
 npm run format

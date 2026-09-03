@@ -232,6 +232,25 @@ body {
         position: absolute;
     }
 
+    /* --cloud is a rule and dash colour, never text — see the kit palette — which is exactly
+       what the computed base is: a line drawn across a picture, not a reading to be read off
+       it. It is painted last, over the layers, so an overcast lid cannot bury it. */
+    .computed-base {
+        stroke: var(--cloud);
+        stroke-dasharray: 4 4;
+        stroke-width: 1.5;
+    }
+
+    /* Distance by tone: a layer at or above the atlas's low/mid boundary sits a step further
+       back than the plaque's own tile, and one below it a step nearer. */
+    .layer-far {
+        fill: var(--panel);
+    }
+
+    .layer-near {
+        fill: var(--raised);
+    }
+
     .plaque-text {
         display: flex;
         flex-direction: column;

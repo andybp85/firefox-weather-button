@@ -1,3 +1,4 @@
+import { cloudSky } from './cloud-sky.js'
 import { comfortBand } from './comfort.js'
 
 const HOUR_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
@@ -128,6 +129,35 @@ const renderComfort = ({ dewpointFahrenheit, document }) => {
     chip.textContent = label
 }
 
+// One layer's shapes, all three lists always present, so this never branches on which kind of
+// layer it was handed: an overcast lid is rects and circles, a puff row is ellipses and circles,
+// and both are just shapes at a height by the time they get here.
+const buildLayer = ({ circles, document, ellipses, far, rects }) => {
+    const className = far ? 'layer-far' : 'layer-near'
+
+    return [
+        ...rects.map(attributes => buildSvg({ attributes: { class: className, ...attributes }, document, name: 'rect' })),
+        ...ellipses.map(attributes => buildSvg({ attributes: { class: className, ...attributes }, document, name: 'ellipse' })),
+        ...circles.map(attributes => buildSvg({ attributes: { class: className, ...attributes }, document, name: 'circle' })),
+    ]
+}
+
+// The computed base is drawn on every sky, including a clear one: it is the plaque's own
+// reading, and hiding it when nothing was reported would hide it exactly when it is the only
+// cloud information there is. The layers go down first, high to low so the near deck paints over
+// the far one, and the base goes over all of them — an overcast lid runs from its own height to
+// the foot of the plot, and would otherwise bury the one line the plaque is named for.
+const renderSky = ({ cloudBaseFeet, cloudLayers, document }) => {
+    const { base, layers } = cloudSky({ baseFeet: cloudBaseFeet, layers: cloudLayers })
+    const dash = buildSvg({
+        attributes: { class: 'computed-base', x1: 0, x2: 136, y1: base.y, y2: base.y },
+        document,
+        name: 'line',
+    })
+
+    document.querySelector(SELECTORS.sky).replaceChildren(...layers.flatMap(layer => buildLayer({ ...layer, document })), dash)
+}
+
 // Calm and unreported each have to read as itself: calm air was measured and found still, an
 // unreported wind was not measured at all, and neither of them is "0 kt".
 const renderWind = ({ document, wind }) => {
@@ -250,6 +280,7 @@ export const render = ({ document, model, now }) => {
     writeReading({ document, selector: SELECTORS.dewpoint, text: `${observation.dewpointFahrenheit}°` })
     renderComfort({ dewpointFahrenheit: observation.dewpointFahrenheit, document })
 
+    renderSky({ cloudBaseFeet: observation.cloudBaseFeet, cloudLayers: observation.cloudLayers, document })
     writeReading({ document, selector: SELECTORS.cloudBase, text: WHOLE_FEET_FORMAT.format(observation.cloudBaseFeet), unit: 'ft' })
     renderWind({ document, wind: observation.wind })
     renderPressure({ document, observation, tendency })
@@ -278,6 +309,10 @@ export const renderUnavailable = ({ document, reason }) => {
     // band it would name is exactly what is unknown here.
     document.querySelector(SELECTORS.comfort).hidden = true
 
+    // The sky is emptied rather than drawn: cloudSky needs a base and a layer list to place its
+    // shapes, and neither exists here. That leaves the plot's own furniture, which for this
+    // plaque is none — the dashed base is the only thing it ever draws.
+    document.querySelector(SELECTORS.sky).replaceChildren()
     writeReading({ document, selector: SELECTORS.cloudBase, text: PLACEHOLDER })
     renderWind({ document, wind: { state: 'unreported' } })
     // A needle and a glyph a successful render left standing would be the last good reading

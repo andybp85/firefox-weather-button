@@ -232,4 +232,60 @@ test('renderUnavailable strikes the instruments a successful render left standin
 
     assert.equal(document.querySelector('#barometer').children.length, 0)
     assert.equal(document.querySelector('#trend-glyph').children.length, 0)
+    // The sky goes with them: a dashed base left standing is a reading the popup no longer has.
+    assert.equal(document.querySelector('#sky').children.length, 0)
+})
+
+test('render dashes the computed base across the sky at its own height', () => {
+    const base = rendered(observed({ cloudBaseFeet: 2990 })).querySelector('#sky line')
+
+    assert.equal(Math.round(Number(base.getAttribute('y1')) * 100) / 100, 93.37)
+    assert.deepEqual([base.getAttribute('x1'), base.getAttribute('x2')], ['0', '136'])
+})
+
+test('render draws the computed base on a clear sky too', () => {
+    // It is the plaque's own reading. Drawing it only when a layer was reported would hide it
+    // exactly when it is the only cloud information there is.
+    const document = rendered(observed({ cloudLayers: [] }))
+
+    assert.equal(document.querySelectorAll('#sky line').length, 1)
+    assert.equal(document.querySelectorAll('#sky ellipse').length, 0)
+})
+
+test('render paints the near layers over the far ones', () => {
+    // The list is high to low and SVG paints in document order, so the last layer written is
+    // the lowest — which is what a sky looks like from underneath.
+    const document = rendered(
+        observed({
+            cloudLayers: [
+                { baseFeet: 25000, cover: 'BKN' },
+                { baseFeet: 4500, cover: 'SCT' },
+            ],
+        }),
+    )
+    const heights = [...document.querySelectorAll('#sky ellipse')].map(ellipse => Math.round(Number(ellipse.getAttribute('cy'))))
+
+    assert.deepEqual(heights, [72, 72, 93, 93])
+})
+
+test('render paints the computed base over the layers rather than under them', () => {
+    // An overcast lid runs from its own height down to the foot, so a base drawn under the
+    // layers would be buried by one — and the base is the reading the plaque is named for.
+    const document = rendered(observed({ cloudBaseFeet: 400, cloudLayers: [{ baseFeet: 400, cover: 'OVC' }] }))
+
+    assert.equal(document.querySelector('#sky').lastElementChild.getAttribute('class'), 'computed-base')
+})
+
+test('render colours a high layer a step further away than a low one', () => {
+    const document = rendered(
+        observed({
+            cloudLayers: [
+                { baseFeet: 12000, cover: 'FEW' },
+                { baseFeet: 4500, cover: 'FEW' },
+            ],
+        }),
+    )
+    const [high, low] = [...document.querySelectorAll('#sky ellipse')].map(ellipse => ellipse.getAttribute('class'))
+
+    assert.deepEqual({ high, low }, { high: 'layer-far', low: 'layer-near' })
 })
