@@ -6,6 +6,11 @@ const DEGREES_PER_POINT = 360 / COMPASS_POINTS.length
 // the small-craft advisory's own neighbourhood. A gust promotes the wind at any speed.
 export const NOTABLE_KNOTS = 15
 
+// A gust this far over the sustained wind is the wind you dress for, so it takes the button's
+// colour. An absent gustKnots makes the subtraction NaN and NaN compares false, so the
+// sustained speed wins with no guard of its own: the arithmetic is the guard.
+const GUST_MARGIN_KNOTS = 10
+
 const cardinal = degrees => COMPASS_POINTS[Math.round(degrees / DEGREES_PER_POINT) % COMPASS_POINTS.length]
 
 // AWC sends the literal string 'VRB' for genuinely variable wind rather than omitting wdir, so
@@ -35,6 +40,11 @@ export const toWind = ({ wdir, wgst, wspd }) => {
     // Unmeasured fields are left off the value rather than carried as undefined, so it holds
     // what the station reported and nothing else.
     return {
+        // The cardinal is for text and the degrees are for the plaque's shaft; both are left
+        // off a variable or unreported direction rather than defaulted, so nothing downstream
+        // can draw a heading the station never sent. toDirection() reads the same field for
+        // its own 'variable' case — the two guards are the one decision, spelled twice.
+        ...(typeof wdir === 'number' ? { bearingDegrees: wdir } : {}),
         ...(direction === undefined ? {} : { direction }),
         ...(gustKnots === undefined ? {} : { gustKnots }),
         knots: wspd,
@@ -48,10 +58,13 @@ const isBrisk = ({ gustKnots, knots }) => gustKnots !== undefined || knots >= NO
 // and unreported never do: an icon that reorganises itself to announce no wind is noise.
 export const isNotable = wind => (wind.state === 'measured' ? isBrisk(wind) : false)
 
-// The one wording of a wind, shared by the popup's row and the button's tooltip so the two can
-// never describe the same reading differently. 'calm' and 'unreported' are the two things a wind
-// can be that are not a measurement, and each has to read as itself: calm air was measured and
-// found still, an unreported wind was not measured at all, and neither of them is "0 kt".
+// The speed the button colours itself by: the sustained wind, unless the gust is far enough
+// over it to be the reading that matters.
+export const announcedKnots = ({ gustKnots, knots }) => (gustKnots - knots > GUST_MARGIN_KNOTS ? gustKnots : knots)
+
+// The button tooltip's wording of a wind. The popup's plaque splits the same reading across its
+// speed and direction lines instead, so this is no longer a shared wording; it stays here
+// because 'calm' and 'unreported' are decisions about the value, not about the tooltip.
 export const describeWind = wind => {
     if (wind.state === 'calm') return 'calm'
     if (wind.state === 'unreported') return 'unreported'

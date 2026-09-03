@@ -85,7 +85,7 @@ test('the popup renders a live series and caches it for the next open', async ()
     const { fetch } = stubFetch(liveRoutes(fixture('kewr-rising')))
     const document = await runPopup({ fetch, storage })
 
-    assert.match(document.querySelector('#dewpoint').textContent, /58F/)
+    assert.match(document.querySelector('#dewpoint').textContent, /58°/)
     assert.deepEqual(storage.records['observations:KEWR'].value, fixture('kewr-rising'))
     assert.equal(document.querySelector('#thunder').hidden, false)
 })
@@ -101,7 +101,7 @@ test('a forecast outage costs the thunder row, not the observation series', asyn
 
     const document = await runPopup({ fetch, storage })
 
-    assert.match(document.querySelector('#dewpoint').textContent, /58F/)
+    assert.match(document.querySelector('#dewpoint').textContent, /58°/)
     assert.equal(document.querySelector('#thunder').hidden, true, 'no forecast means no thunder row')
     assert.deepEqual(storage.records['observations:KEWR'].value, observations, 'the series must still be cached')
     assert.equal(storage.records['forecast:KEWR'], undefined, 'a forecast that never arrived must not be cached')
@@ -123,7 +123,7 @@ test('a live series that cannot build a model leaves the cached reading intact a
 
     const document = await runPopup({ fetch, storage })
 
-    assert.match(document.querySelector('#dewpoint').textContent, /58F/)
+    assert.match(document.querySelector('#dewpoint').textContent, /58°/)
     assert.match(document.querySelector('#age').textContent, /obs 4h ago/)
     assert.doesNotMatch(document.querySelector('#age').textContent, /no observation available/)
     assert.deepEqual(storage.records['observations:KEWR'].value, cached, 'the last good series must survive a bad live fetch')
@@ -164,7 +164,7 @@ test('a popup reopened inside the TTL serves both the series and the forecast fr
     const document = await runPopup({ fetch, storage })
 
     assert.equal(calls.length, 0, 'a cache hit inside the TTL must spend no requests')
-    assert.match(document.querySelector('#dewpoint').textContent, /58F/)
+    assert.match(document.querySelector('#dewpoint').textContent, /58°/)
     // The forecast is cached alongside the series precisely so the thunder row survives a
     // cached open; caching only the observations would make the row blink out every reopen.
     assert.equal(document.querySelector('#thunder').hidden, false)

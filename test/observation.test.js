@@ -31,25 +31,51 @@ test('toViewModel preserves the visibility string verbatim', () => {
 // that toViewModel hands the record over and carries the value out whole, rather than a sentence.
 test('toViewModel carries the decoded wind value rather than a description of it', () => {
     const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 320, wgst: 27, wspd: 18 })
-    assert.deepEqual(view.wind, { direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
+    assert.deepEqual(view.wind, { bearingDegrees: 320, direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
 })
 
-test('toViewModel describes an empty cloud layer list as clear', () => {
+test('toViewModel reports no layers for a clear sky', () => {
     const view = toViewModel({ clouds: [], dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
-    assert.equal(view.clouds, 'clear')
+
+    assert.deepEqual(view.cloudLayers, [])
 })
 
-test('toViewModel renders a cloud layer that reports no base', () => {
-    // A clear sky is reported as a cover with no base; "CLR undefined ft" is not a cloud report.
+test('toViewModel drops a layer that reports no height', () => {
+    // AWC omits `base` on CLR and SKC. A layer with no height cannot be placed on the plaque or
+    // named in the header line, and 'clear' is what an empty list already reads as.
     const view = toViewModel({ clouds: [{ cover: 'CLR' }], dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7 })
-    assert.equal(view.clouds, 'CLR')
+
+    assert.deepEqual(view.cloudLayers, [])
+})
+
+test('toViewModel sorts the layers high to low so the plaque paints the near ones last', () => {
+    const view = toViewModel({
+        clouds: [
+            { base: 7000, cover: 'FEW' },
+            { base: 25000, cover: 'BKN' },
+            { base: 20000, cover: 'FEW' },
+        ],
+        dewp: 14.4,
+        reportTime: '2026-08-26T13:00:00.000Z',
+        temp: 21.7,
+    })
+
+    assert.deepEqual(view.cloudLayers, [
+        { baseFeet: 25000, cover: 'BKN' },
+        { baseFeet: 20000, cover: 'FEW' },
+        { baseFeet: 7000, cover: 'FEW' },
+    ])
 })
 
 test('toViewModel renders the newest fixture observation', () => {
     // KEWR at 2026-08-26T14:00Z: 23.3C / 14.4C dewpoint, calm, three cloud layers.
     assert.deepEqual(toViewModel(fixture('kewr-rising')[0]), {
         cloudBaseFeet: 3650,
-        clouds: 'FEW 7000 ft, FEW 20000 ft, BKN 25000 ft',
+        cloudLayers: [
+            { baseFeet: 25000, cover: 'BKN' },
+            { baseFeet: 20000, cover: 'FEW' },
+            { baseFeet: 7000, cover: 'FEW' },
+        ],
         dewpointFahrenheit: 58,
         observedAt: '2026-08-26T14:00:00.000Z',
         pressureHpa: 1018.9,

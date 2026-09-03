@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { NOTABLE_KNOTS, isNotable, toWind } from '../src/wind.js'
+import { NOTABLE_KNOTS, announcedKnots, isNotable, toWind } from '../src/wind.js'
 
 test('toWind reads an absent speed as unreported rather than as calm', () => {
     // An omitted wspd means nobody measured the wind. Calling it calm asserts a reading that
@@ -18,7 +18,7 @@ test('toWind reads calm before it reads direction, so a VRB calm is still calm',
 
 test('toWind names the cardinal point a numeric bearing falls in', () => {
     // 350 deg is 10 deg from due north: N spans 348.75-11.25, so this is N, not NNW.
-    assert.deepEqual(toWind({ wdir: 350, wspd: 7 }), { direction: 'N', knots: 7, state: 'measured' })
+    assert.deepEqual(toWind({ wdir: 350, wspd: 7 }), { bearingDegrees: 350, direction: 'N', knots: 7, state: 'measured' })
 })
 
 test('toWind rounds a mid-sector bearing to the nearest point', () => {
@@ -37,7 +37,13 @@ test('toWind reads a literal VRB bearing as a variable direction', () => {
 })
 
 test('toWind carries the gust alongside the sustained speed', () => {
-    assert.deepEqual(toWind({ wdir: 320, wgst: 27, wspd: 18 }), { direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
+    assert.deepEqual(toWind({ wdir: 320, wgst: 27, wspd: 18 }), {
+        bearingDegrees: 320,
+        direction: 'NW',
+        gustKnots: 27,
+        knots: 18,
+        state: 'measured',
+    })
 })
 
 test('toWind drops a gust that does not exceed the sustained speed', () => {
@@ -67,4 +73,32 @@ test('isNotable promotes a gusting wind however light the sustained speed is', (
     // A wind that swings from 4 to 14 kt is doing something a single figure cannot describe,
     // which is the whole reason the button gives the band to the sock.
     assert.equal(isNotable(toWind({ wgst: 14, wspd: 4 })), true)
+})
+
+test('toWind keeps the numeric bearing beside the cardinal it names', () => {
+    // The plaque's shaft needs degrees and the text needs the cardinal. Deriving the degrees
+    // back from the cardinal would round WNW's 293 to the point's centre and draw a shaft the
+    // station never reported.
+    assert.deepEqual(toWind({ wdir: 293, wspd: 22 }), { bearingDegrees: 293, direction: 'WNW', knots: 22, state: 'measured' })
+})
+
+test('toWind carries no bearing for a variable wind', () => {
+    assert.equal(toWind({ wdir: 'VRB', wspd: 18 }).bearingDegrees, undefined)
+})
+
+test('toWind carries no bearing when the station omits the direction', () => {
+    assert.equal(toWind({ wspd: 18 }).bearingDegrees, undefined)
+})
+
+test('announcedKnots reads the sustained speed when there is no gust', () => {
+    assert.equal(announcedKnots({ knots: 18 }), 18)
+})
+
+test('announcedKnots keeps the sustained speed for a gust exactly at the margin', () => {
+    // The rule is "more than 10 kt over", not "at least": 55 gusting 65 is still a force 10 wind.
+    assert.equal(announcedKnots({ gustKnots: 65, knots: 55 }), 55)
+})
+
+test('announcedKnots takes the gust when it is more than 10 kt over the sustained wind', () => {
+    assert.equal(announcedKnots({ gustKnots: 32, knots: 18 }), 32)
 })

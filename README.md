@@ -1,25 +1,30 @@
 # Firefox Weather Button
 
-A Firefox toolbar button that shows the current dewpoint, coloured by how it feels, and
+A Firefox toolbar button that shows the current dewpoint over a band for how it feels, and
 opens a popup with local weather detail.
 
 ## The toolbar button
 
-The button icon is drawn, not fixed. It shows:
+The button icon is drawn, not fixed. It is a rounded chip in the toolbar's own indigo. The
+chip shows:
 
-- The dewpoint in whole degrees Fahrenheit.
-- A background colour for the comfort band that dewpoint falls in (see the table below).
-- A glyph for the 3-hour barometric pressure trend: an up arrow for a rise, a down arrow for
-  a fall, and a dash for steady.
-- A windsock, once the wind is worth announcing: gusting, or sustained at 15 kt or more. The
-  sock's lift is the speed — it hangs at calm and flies straight out at 45 kt — and a short
-  detached tick beyond its tip means the wind is gusting.
+- A band along the foot of the chip, in the colour of the comfort band that the dewpoint falls
+  in (see the table below).
+- The 3-hour barometric pressure trend, cut out of that band in the chip's own indigo: an up
+  arrow for a rise, a down arrow for a fall, and a dash for steady.
+- The dewpoint in whole degrees Fahrenheit, on the face above the band.
 
-The trend glyph sits in a band across the bottom of the square. A notable wind takes that band
-for the sock, and the trend moves to a smaller mark in the top-right corner; below the
-threshold the icon is drawn exactly as it always was. The button shows no wind direction:
-sixteen bearings do not survive three device pixels, and a bearing drawn wrong is worse than
-none. Direction is in the popup and the tooltip.
+A wind is worth announcing when it gusts, or when it is sustained at 15 kt or more. Such a wind
+takes the face: the figures give way to a wind mark. The band and the trend stay where they are,
+on every path.
+
+The mark is a compass dart. It flies downwind, which is the map convention: a wind from the
+north points down the face. Its colour is the Beaufort force of the wind. The dart takes the
+force of the gust when the gust is more than 10 kt above the sustained wind. In every other case
+it takes the force of the sustained wind.
+
+Some stations report a speed with no bearing. The button then draws a ring in the force colour
+in place of the dart. The ring reports the speed and claims no heading.
 
 Point at the button to read the same values as text, with the station name, the comfort band,
 and the wind written out. The tooltip names the wind at any speed, including one too light to
@@ -46,15 +51,27 @@ dewpoint that was not measured.
 
 ## What the popup shows
 
-The popup shows:
+The popup is a header, four stat plaques in a 2×2 grid, a thunder strip, and a footer.
 
-- Dewpoint
-- Barometric pressure, with a 3-hour trend arrow
-- Wind: direction, sustained speed, and the gust where one is reported, beside a windsock
-  drawn from the same geometry the toolbar button uses
-- Ambient conditions from the nearest METAR station (temperature, visibility, cloud layers)
-- A computed cloud base, from the dewpoint depression
-- A 12-hour strip of thunderstorm probability
+The header carries the ambient conditions from the nearest METAR station: the temperature, the
+reported cloud layers, and the visibility.
+
+Each plaque carries one reading and an instrument that draws it:
+
+- **Dewpoint**, with a chip that names its comfort band in that band's colour.
+- **Cloud base**, computed from the dewpoint depression, over a painted sky. Each reported
+  layer is drawn at its height, and its coverage sets the width of the cloud. An overcast sky
+  is a solid lid. The computed base is a dashed line over the layers, drawn on a clear sky too.
+- **Wind**, on a station-model plot inside a compass ring. The barbs point toward the source of
+  the wind, in the colour of its Beaufort force. A gust is a second set of barbs behind the
+  first, in the colour of its own force. Calm draws the station model's own calm symbol. A wind
+  with no reported bearing draws its barbs with no shaft. Below the plot, a line names the
+  compass point, or reads `variable`, `no direction`, or `unreported`.
+- **Pressure**, on a half-dial barometer, with the 3-hour trend and its glyph below the dial.
+
+The thunder strip sits below the plaques. It shows the thunderstorm probability for the next 12
+hours, one bar an hour. The footer carries the station name, the age of the observation, and the
+provenance of the pressure trend.
 
 ## Data sources
 
@@ -117,19 +134,26 @@ npm install
 npm test
 npm run lint:js
 npm run format
+npx stylelint src/ui.css
+npx markdownlint-cli2 '**/*.md'
 npx web-ext lint
 ```
 
 `npm test` runs the unit test suite. `npm run lint:js` runs `oxlint` against `src` and `test`.
-`npm run format` runs `oxfmt` against `docs`, `src`, and `test`. `npx web-ext lint` (also available
-as `npm run lint`) checks the manifest and packaged files against Firefox's add-on rules.
+`npm run format` runs `oxfmt` against `docs`, `src`, and `test`. `stylelint` checks `src/ui.css`,
+which holds the popup's own rules and the options page's. `markdownlint-cli2` checks the prose.
+`npx web-ext lint` (also available as `npm run lint`) checks the manifest and packaged files
+against Firefox's add-on rules.
 
 ### Preview the toolbar icon
 
-[`docs/icon-preview.html`](docs/icon-preview.html) draws every case the button icon has — both
-layouts, both sides of the wind threshold, all three trend glyphs, and the readings that run to
-three characters — at the sizes Firefox asks for. It imports `src/button-icon.js` and decodes its
-winds through `src/wind.js`, so the page rasterises the shipping code rather than a copy of it.
+[`docs/icon-preview.html`](docs/icon-preview.html) draws every case the button icon has, at the
+sizes Firefox asks for. The cases cover both sides of the 15 kt wind threshold, both sides of the
+10 kt gust margin, the ring for a wind with no bearing, all three trend glyphs, and the readings
+that run to three characters. A sweep of all sixteen compass points follows them, so the dart's
+sense can be read off the page rather than derived. The page imports `src/button-icon.js` and
+decodes its winds through `src/wind.js`, so it rasterises the shipping code rather than a copy
+of it.
 
 ES modules need an HTTP origin, so serve the repository root instead of opening the file:
 
@@ -149,6 +173,10 @@ tool: `docs/` is excluded from the packaged extension.
 The extension has been loaded in a real Firefox Developer Edition profile: the popup renders, and
 the toolbar icon rasters, paints, and refreshes on its alarm. Manual checks are recorded in
 [`docs/verification-log.md`](docs/verification-log.md).
+
+That check predates the plaque panel and the compass-dart button. Neither surface has been seen
+in a real profile yet. The dart at 16 device pixels is the case to look at first: it is about 8
+pixels long there, and the local preview page is not a toolbar.
 
 The automated checks stop short of Gecko. `npm run lint` (`web-ext lint`) reports no errors and no
 warnings. The test suite runs the popup's rendering code against a simulated DOM (jsdom), and makes

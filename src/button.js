@@ -28,8 +28,8 @@ const showUnavailable = async ({ action, reason }) => {
 }
 
 // Paints the toolbar button from the current observation: the dewpoint in figures, the comfort
-// band as the chip's colour, the 3-hour pressure trend, and the wind as a windsock once it is
-// blowing hard enough to have earned the room (see wind.js's isNotable).
+// band along the chip's foot, the 3-hour pressure trend cut into it, and the wind as a compass
+// dart in place of the figures once it is blowing hard enough (see wind.js's isNotable).
 // paintIcon is injected because it needs a canvas, which is the one part of this that the
 // test environment has no implementation of; everything above it is ordinary data.
 export const updateButton = async ({ action, cache, client, now, paintIcon, stationId }) => {

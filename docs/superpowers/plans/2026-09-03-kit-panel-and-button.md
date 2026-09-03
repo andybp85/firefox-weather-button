@@ -80,7 +80,7 @@ against the same yardstick.
   force; `beaufortForce(knots: number) → number` in 0..12; `beaufortColour(force: number) → string` of the form
   `light-dark(#light, #dark)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/beaufort.test.js`:
 
@@ -138,12 +138,12 @@ test('every force carries a light partner distinct from its dark colour', () => 
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern beaufort`
 Expected: FAIL, `Cannot find module '../src/beaufort.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/beaufort.js`:
 
@@ -185,12 +185,12 @@ export const beaufortForce = knots => BEAUFORT.findIndex(force => knots < force.
 export const beaufortColour = force => `light-dark(${BEAUFORT[force].light}, ${BEAUFORT[force].dark})`
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern beaufort`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
@@ -215,7 +215,7 @@ git commit -m "feat: add the Beaufort ramp as one source of force and colour"
 - Produces: `toWind` now returns `bearingDegrees` alongside `direction` when `wdir` is a number, and omits it
   otherwise; `announcedKnots({ gustKnots, knots }) → number`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `test/wind.test.js`. Change the existing import line to
 `import { NOTABLE_KNOTS, announcedKnots, isNotable, toWind } from '../src/wind.js'`, then append:
@@ -250,12 +250,12 @@ test('announcedKnots takes the gust when it is more than 10 kt over the sustaine
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "bearing|announcedKnots"`
 Expected: FAIL — `announcedKnots is not a function`, and the bearing case reports a missing property.
 
-- [ ] **Step 3: Extend the module**
+- [x] **Step 3: Extend the module**
 
 In `src/wind.js`, add beside `NOTABLE_KNOTS`:
 
@@ -290,13 +290,13 @@ In `toWind`, add the bearing to the returned value, above `direction`:
     }
 ```
 
-- [ ] **Step 4: Run the whole suite**
+- [x] **Step 4: Run the whole suite**
 
 Run: `npm test`
 Expected: PASS. `observation.test.js` asserts on whole wind values; if any of its expectations now miss
 `bearingDegrees`, add the property to that fixture's expectation — the new field is the point.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
@@ -321,7 +321,7 @@ git commit -m "feat: carry the wind's bearing and announce the speed that colour
 - Produces: `dartPoints({ centre: { x, y }, fromDegrees: number, scale: number }) → [{ x, y } × 4]`, wound tip, right
   wing, tail notch, left wing; `DIRECTIONLESS_RING = { radius: 10, stroke: 6 }` in 64-unit face units.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/wind-dart.test.js`:
 
@@ -377,12 +377,12 @@ test('dartPoints scales the face about the centre it is given', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern dartPoints`
 Expected: FAIL, `Cannot find module '../src/wind-dart.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/wind-dart.js`:
 
@@ -430,12 +430,12 @@ export const dartPoints = ({ centre, fromDegrees, scale }) => {
 }
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern dartPoints`
 Expected: PASS, 4 tests. The worst reach is 19.11, the wings' `hypot(14, 13)`.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
@@ -461,7 +461,7 @@ git commit -m "feat: add the compass dart geometry for the toolbar button"
   and `DIRECTIONLESS_RING` from Task 3.
 - Produces: `drawButtonIcon({ context, dewpointFahrenheit, direction, size, wind })`, signature unchanged.
 
-- [ ] **Step 1: Replace the test file**
+- [x] **Step 1: Replace the test file**
 
 Replace `test/button-icon.test.js` entirely:
 
@@ -636,7 +636,9 @@ test('drawButtonIcon rings the centre for a notable wind with no bearing', () =>
     const [ring] = only({ calls, name: 'arc' })
 
     assert.deepEqual({ radius: ring.radius, x: ring.x, y: ring.y }, { radius: 10, x: 32, y: 25 })
-    assert.equal(ring.strokeStyle, '#6cc8f7')
+    // The gust is 15 over the sustained 6, so the announced speed is 21 and the ring takes force
+    // 5. The ring reports the same speed the dart would have; only the heading is withheld.
+    assert.equal(ring.strokeStyle, '#c8f640')
     assert.equal(ring.lineWidth, 6)
     assert.equal(paths(calls).length, 1)
 })
@@ -650,12 +652,12 @@ test('drawButtonIcon scales the whole face, so 16 and 32 are one drawing at two 
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern drawButtonIcon`
 Expected: FAIL. The chip still floods with the comfort colour and there is no band.
 
-- [ ] **Step 3: Rewrite the module**
+- [x] **Step 3: Rewrite the module**
 
 Replace `src/button-icon.js`:
 
@@ -814,12 +816,12 @@ export const drawButtonIcon = ({ context, dewpointFahrenheit, direction, size, w
 }
 ```
 
-- [ ] **Step 4: Run the tests and watch them pass**
+- [x] **Step 4: Run the tests and watch them pass**
 
 Run: `npm test -- --test-name-pattern drawButtonIcon`
 Expected: PASS, 12 tests.
 
-- [ ] **Step 5: Rebuild the preview's case list**
+- [x] **Step 5: Rebuild the preview's case list**
 
 In `docs/icon-preview.js`, replace the `CASES` array and its comment with:
 
@@ -861,7 +863,7 @@ Change the final assembly line from `const examples = CASES.map(toExample)` to:
 const examples = [...CASES, ...COMPASS_CASES].map(toExample)
 ```
 
-- [ ] **Step 6: Look at the preview**
+- [x] **Step 6: Look at the preview**
 
 ```bash
 npm run preview
@@ -870,7 +872,7 @@ npm run preview
 Open <http://127.0.0.1:8765/docs/icon-preview.html>. Confirm the compass sweep reads as a clock face, the notch is
 legible in all three trends, and the ring row shows a ring rather than a dart. Stop the server.
 
-- [ ] **Step 7: Format, lint, commit**
+- [x] **Step 7: Format, lint, commit**
 
 ```bash
 npm run format
@@ -896,7 +898,7 @@ git commit -m "feat: draw the toolbar button as a comfort band, a trend notch, a
   `{ filled: boolean, gust: boolean, points: [{ x, y }] }` — two points for a barb, three for a filled pennant. Gust
   marks come first. `shaft` is `{ from: { x, y }, to: { x, y } }` and is absent when there is no bearing.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/wind-barbs.test.js`:
 
@@ -1004,12 +1006,12 @@ test('windBarbs draws nothing for a calm wind', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern windBarbs`
 Expected: FAIL, `Cannot find module '../src/wind-barbs.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/wind-barbs.js`:
 
@@ -1127,12 +1129,12 @@ export const windBarbs = ({ bearingDegrees, gustKnots, knots }) => {
 }
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern windBarbs`
 Expected: PASS, 9 tests.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
@@ -1159,7 +1161,7 @@ git commit -m "feat: add station-model wind barbs for the panel's wind plaque"
   `{ circles: [{ cx, cy, r }], ellipses: [{ cx, cy, rx, ry }], far: boolean, rects: [{ height, width, x, y }] }`,
   in the order given (high to low), every list always present so a consumer never branches on shape.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/cloud-sky.test.js`:
 
@@ -1253,12 +1255,12 @@ test('cloudSky leaves out a vertical visibility report', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern "skyHeight|cloudSky"`
 Expected: FAIL, `Cannot find module '../src/cloud-sky.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/cloud-sky.js`:
 
@@ -1347,12 +1349,12 @@ const toLayer = ({ baseFeet, cover }) => {
 export const cloudSky = ({ baseFeet, layers }) => ({ base: { y: skyHeight(baseFeet) }, layers: layers.filter(isDrawable).map(toLayer) })
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern "skyHeight|cloudSky"`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
@@ -1377,7 +1379,7 @@ git commit -m "feat: add the cloud plaque's height scale, puffs, and overcast li
 - Produces: `toViewModel` returns `cloudLayers: [{ baseFeet, cover }]`, sorted high to low, and no longer returns
   `clouds`. Layers with no reported base are dropped; VV layers are kept here and skipped at draw time.
 
-- [ ] **Step 1: Rewrite the cloud tests**
+- [x] **Step 1: Rewrite the cloud tests**
 
 In `test/observation.test.js`, replace the three tests that assert on `view.clouds` with:
 
@@ -1416,12 +1418,12 @@ test('toViewModel sorts the layers high to low so the plaque paints the near one
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern toViewModel`
 Expected: FAIL, `cloudLayers` is undefined.
 
-- [ ] **Step 3: Replace the sentence with the data**
+- [x] **Step 3: Replace the sentence with the data**
 
 In `src/observation.js`, delete `describeCloudLayer` and `describeClouds`, and add:
 
@@ -1445,7 +1447,7 @@ const toCloudLayers = clouds =>
 Replace the `clouds: describeClouds(clouds)` line in the returned object with `cloudLayers: toCloudLayers(clouds)`,
 keeping the properties alphabetized (`cloudBaseFeet`, then `cloudLayers`, then `dewpointFahrenheit`).
 
-- [ ] **Step 4: Keep the popup reading the same list**
+- [x] **Step 4: Keep the popup reading the same list**
 
 `popup.js` still writes the deleted `clouds` sentence into the ambient line. That line is rebuilt properly in Task 8;
 here it only needs to stop reading a field that no longer exists, so the suite stays green at this commit. In
@@ -1467,13 +1469,13 @@ const WHOLE_FEET_FORMAT = new Intl.NumberFormat()
 Change the ambient-clouds write in `render` from `text: observation.clouds` to
 `text: describeCloudLayers(observation.cloudLayers)`.
 
-- [ ] **Step 5: Update the popup test's clouds expectation**
+- [x] **Step 5: Update the popup test's clouds expectation**
 
 In `test/popup.test.js`, any fixture passing `clouds: 'FEW 7000 ft, ...'` now passes
 `cloudLayers: [{ baseFeet: 7000, cover: 'FEW' }, ...]`, and the expected text becomes the joined form
 (`FEW 7,000 · BKN 25,000`). Run `npm test` until green.
 
-- [ ] **Step 6: Format, lint, commit**
+- [x] **Step 6: Format, lint, commit**
 
 ```bash
 npm run format
@@ -1506,7 +1508,7 @@ markup and their box here and are drawn in Tasks 9, 10, and 11. The popup is ful
   `SELECTORS` gains `barometer`, `clouds`, `comfort`, `sky`, `temperature`, `trend`, `trendGlyph`, `visibility`,
   `windDirection`, `windPlot`, `windSpeed`, and loses `ambientClouds`, `ambientPrimary`, `wind`, `windsock`.
 
-- [ ] **Step 1: Replace the popup's body**
+- [x] **Step 1: Replace the popup's body**
 
 Replace everything between `<body>` and `</body>` in `src/popup.html`:
 
@@ -1568,7 +1570,7 @@ Replace everything between `<body>` and `</body>` in `src/popup.html`:
         <script src="/src/popup-main.js" type="module"></script>
 ```
 
-- [ ] **Step 2: Replace the panel's styles**
+- [x] **Step 2: Replace the panel's styles**
 
 In `src/ui.css`, delete everything from the `/* .popup is the toolbar action's ... */` comment to the end of the file
 and put this in its place. `:root`, `body`, and `.options` above it are untouched.
@@ -1799,7 +1801,7 @@ and put this in its place. `:root`, `body`, and `.options` above it are untouche
 }
 ```
 
-- [ ] **Step 3: Rewrite the popup's tests**
+- [x] **Step 3: Rewrite the popup's tests**
 
 Replace `test/popup.test.js` entirely:
 
@@ -1974,12 +1976,12 @@ test('renderUnavailable places every reading and states the reason in the footer
 })
 ```
 
-- [ ] **Step 4: Run the tests and watch them fail**
+- [x] **Step 4: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "render"`
 Expected: FAIL. `#temperature` does not exist yet in `popup.js`'s selector list.
 
-- [ ] **Step 5: Rewrite `popup.js`**
+- [x] **Step 5: Rewrite `popup.js`**
 
 Replace `src/popup.js`:
 
@@ -2196,7 +2198,7 @@ export const renderUnavailable = ({ document, reason }) => {
 }
 ```
 
-- [ ] **Step 6: Delete the windsock and correct the comment it left behind**
+- [x] **Step 6: Delete the windsock and correct the comment it left behind**
 
 ```bash
 git rm src/windsock.js test/windsock.test.js
@@ -2211,7 +2213,7 @@ tooltip. The popup no longer uses it — the plaque splits the reading across tw
 // because 'calm' and 'unreported' are decisions about the value, not about the tooltip.
 ```
 
-- [ ] **Step 7: Run everything**
+- [x] **Step 7: Run everything**
 
 ```bash
 npm test
@@ -2221,7 +2223,7 @@ npx web-ext lint --source-dir . --ignore-files "node_modules/**" "test/**" "docs
 
 Expected: all green. `popup-main.test.js` may need its fixture updated to the new observation shape; do that if so.
 
-- [ ] **Step 8: Look at the panel**
+- [ ] **Step 8: Look at the panel** (not done: no browser in this lane — see the Task 8 report)
 
 ```bash
 npm run preview
@@ -2230,7 +2232,7 @@ npm run preview
 Open <http://127.0.0.1:8765/src/popup.html>. The plaques will have empty instrument boxes — that is expected until
 Task 11. Check the grid, the chip, the footer, and that nothing overflows 304 px. Stop the server.
 
-- [ ] **Step 9: Format, lint, commit**
+- [x] **Step 9: Format, lint, commit**
 
 ```bash
 npm run format
@@ -2259,7 +2261,7 @@ deprecated. The three instruments land in the next three tasks."
 - Consumes: nothing new.
 - Produces: nothing new exported. `render` now fills `#barometer` and `#trend-glyph`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `test/popup.test.js`:
 
@@ -2309,12 +2311,12 @@ test('render refuses a trend it has no glyph for', () => {
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "needle|trend glyph"`
 Expected: FAIL, `#barometer line` is null.
 
-- [ ] **Step 3: Add the dial's furniture to the markup**
+- [x] **Step 3: Add the dial's furniture to the markup**
 
 In `src/popup.html`, replace the pressure plaque's barometer `<svg>` with:
 
@@ -2334,7 +2336,7 @@ In `src/popup.html`, replace the pressure plaque's barometer `<svg>` with:
                     </svg>
 ```
 
-- [ ] **Step 4: Style the dial**
+- [x] **Step 4: Style the dial**
 
 Inside the `.plaque-pressure` block in `src/ui.css`, above `.trend`:
 
@@ -2369,7 +2371,7 @@ Inside the `.plaque-pressure` block in `src/ui.css`, above `.trend`:
     }
 ```
 
-- [ ] **Step 5: Draw the needle and the glyph**
+- [x] **Step 5: Draw the needle and the glyph**
 
 In `src/popup.js`, add the namespace constant back beside the others:
 
@@ -2471,12 +2473,12 @@ In `renderUnavailable`, empty the dial and clear the glyph above the existing pr
     document.querySelector(SELECTORS.trendGlyph).replaceChildren()
 ```
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 7: Format, lint, commit**
+- [x] **Step 7: Format, lint, commit**
 
 ```bash
 npm run format
@@ -2502,7 +2504,7 @@ git commit -m "feat: draw the pressure plaque's barometer and trend glyph"
 - Consumes: `cloudSky` from Task 6; `cloudLayers` from Task 7.
 - Produces: nothing new exported. `render` now fills `#sky`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `test/popup.test.js`:
 
@@ -2553,26 +2555,38 @@ test('render colours a high layer a step further away than a low one', () => {
     assert.deepEqual({ high, low }, { high: 'layer-far', low: 'layer-near' })
 })
 
-test('renderUnavailable leaves the sky empty rather than dashing a base it does not have', () => {
-    const document = popupDocument()
-    renderUnavailable({ document, reason: 'no station configured yet' })
+test('render paints the computed base over the layers rather than under them', () => {
+    // An overcast lid runs from its own height down to the foot, so a base drawn under the
+    // layers would be buried by one — and the base is the reading the plaque is named for.
+    const document = rendered(observed({ cloudBaseFeet: 400, cloudLayers: [{ baseFeet: 400, cover: 'OVC' }] }))
 
-    assert.equal(document.querySelector('#sky').children.length, 0)
+    assert.equal(document.querySelector('#sky').lastElementChild.getAttribute('class'), 'computed-base')
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+The unavailable state has no test of its own: a standalone one built on `popupDocument()` passes with no
+implementation at all, because a fresh document's `#sky` is already empty. Add the assertion to the existing
+`renderUnavailable strikes the instruments a successful render left standing`, which renders first, so it fails
+when `render` fills the sky and `renderUnavailable` leaves it standing:
+
+```js
+    // The sky goes with them: a dashed base left standing is a reading the popup no longer has.
+    assert.equal(document.querySelector('#sky').children.length, 0)
+```
+
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "sky|computed base|layer"`
 Expected: FAIL, `#sky line` is null.
 
-- [ ] **Step 3: Style the sky**
+- [x] **Step 3: Style the sky**
 
 Inside `.plaque-cloud` in `src/ui.css`, after the `.sky` rule:
 
 ```css
-    /* --cloud is a rule and dash colour, never text — see palette.md — which is exactly what
-       the computed base is: a line drawn across a picture, not a reading to be read off it. */
+    /* --cloud is a rule and dash colour, never text — see the kit palette — which is exactly
+       what the computed base is: a line drawn across a picture, not a reading to be read off
+       it. It is painted last, over the layers, so an overcast lid cannot bury it. */
     .computed-base {
         stroke: var(--cloud);
         stroke-dasharray: 4 4;
@@ -2580,7 +2594,7 @@ Inside `.plaque-cloud` in `src/ui.css`, after the `.sky` rule:
     }
 
     /* Distance by tone: a layer at or above the atlas's low/mid boundary sits a step further
-       back than the plaque's own ground, and one below it a step nearer. */
+       back than the plaque's own tile, and one below it a step nearer. */
     .layer-far {
         fill: var(--panel);
     }
@@ -2590,7 +2604,7 @@ Inside `.plaque-cloud` in `src/ui.css`, after the `.sky` rule:
     }
 ```
 
-- [ ] **Step 4: Draw the sky**
+- [x] **Step 4: Draw the sky**
 
 In `src/popup.js`, add the import at the top:
 
@@ -2598,7 +2612,8 @@ In `src/popup.js`, add the import at the top:
 import { cloudSky } from './cloud-sky.js'
 ```
 
-Add above `renderComfort`:
+Add below `renderComfort` and above `renderWind`, so the file keeps the plaques' page order (`buildSvg` is
+already defined near the top of the file, beside `buildUnit` — reuse it, do not redefine it):
 
 ```js
 // One layer's shapes, all three lists always present, so this never branches on which kind of
@@ -2616,7 +2631,9 @@ const buildLayer = ({ circles, document, ellipses, far, rects }) => {
 
 // The computed base is drawn on every sky, including a clear one: it is the plaque's own
 // reading, and hiding it when nothing was reported would hide it exactly when it is the only
-// cloud information there is. Layers land over it, high to low, so the near deck paints last.
+// cloud information there is. The layers go down first, high to low so the near deck paints over
+// the far one, and the base goes over all of them — an overcast lid runs from its own height to
+// the foot of the plot, and would otherwise bury the one line the plaque is named for.
 const renderSky = ({ cloudBaseFeet, cloudLayers, document }) => {
     const { base, layers } = cloudSky({ baseFeet: cloudBaseFeet, layers: cloudLayers })
     const dash = buildSvg({
@@ -2625,7 +2642,7 @@ const renderSky = ({ cloudBaseFeet, cloudLayers, document }) => {
         name: 'line',
     })
 
-    document.querySelector(SELECTORS.sky).replaceChildren(dash, ...layers.flatMap(layer => buildLayer({ ...layer, document })))
+    document.querySelector(SELECTORS.sky).replaceChildren(...layers.flatMap(layer => buildLayer({ ...layer, document })), dash)
 }
 ```
 
@@ -2635,18 +2652,19 @@ Call it in `render`, above the cloud-base reading:
     renderSky({ cloudBaseFeet: observation.cloudBaseFeet, cloudLayers: observation.cloudLayers, document })
 ```
 
-In `renderUnavailable`, empty it beside the barometer:
+In `renderUnavailable`, empty it above the cloud-base reading — cloudSky throws without a base and a layer
+list, and this plot has no fixed furniture, so an empty `<g>` is its ground:
 
 ```js
     document.querySelector(SELECTORS.sky).replaceChildren()
 ```
 
-- [ ] **Step 5: Run the tests and watch them pass**
+- [x] **Step 5: Run the tests and watch them pass**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 6: Format, lint, commit**
+- [x] **Step 6: Format, lint, commit**
 
 ```bash
 npm run format

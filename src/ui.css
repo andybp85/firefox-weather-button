@@ -107,141 +107,337 @@ body {
     }
 }
 
-/* .popup is the toolbar action's single window mesa. Sections are plain direct children so
-   the adjacent-sibling rule below can hairline every boundary without a :first-child exception. */
+/* .popup is the toolbar action's single window mesa. The plaques and the footer's tile ground
+   carry the structure now, so the hairline dividers that used to separate the sections are
+   gone: two grounds reading against --panel say the same thing more quietly. */
 .popup {
     background: var(--panel);
     border-radius: 12px;
     overflow: hidden;
     width: 19rem;
-
-    > * {
-        margin: 0;
-        padding: 0.75rem 1rem;
-    }
-
-    /* --cloud is a rule/dash color, never text — see palette.md — so it only ever
-       appears as this hairline, matching the ASCII layout's +---+ section dividers. */
-    > * + * {
-        border-top: 1px solid var(--cloud);
-    }
 }
 
-#ambient {
-    /* Page order: the headline reading, then the clouds line beneath it. */
+/* Page order below follows the panel's own: header, plaques, thunder, footer. */
+.ambient {
+    align-items: baseline;
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 1rem 0.625rem;
 
-    /* The one hot element this view spends its accent ration on (see kit-developer-edition's
-       "ration the orange"): the headline ambient reading, filled rather than colored text —
-       --accent text alone fails AA in the light scheme (2.6:1), so it takes --on-hot on a fill. */
-    .ambient-primary {
-        background: var(--accent);
-        border-radius: 10px;
-        color: var(--on-hot);
-        font: 1.05rem var(--font-display);
+    .temperature {
+        color: var(--ink);
+        font: 3rem var(--font-display);
         font-variant-numeric: tabular-nums;
-        padding: 0.4rem 0.6rem;
+        /* Under 1, so a 48px numeral sits on the same baseline as the two small lines beside
+           it rather than pushing the header taller than the reading needs. */
+        line-height: 0.9;
+        margin: 0;
     }
 
-    .ambient-clouds {
-        color: var(--muted);
-        font-size: 0.8rem;
-        margin-top: 0.3rem;
+    .ambient-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        text-align: right;
+
+        p {
+            color: var(--ink);
+            font-size: 0.75rem;
+            font-variant-numeric: tabular-nums;
+            margin: 0;
+        }
     }
 }
 
-.detail {
-    /* Hoisted out of .dewpoint when the wind row arrived: both rows carry the same standing
-       label, and a second copy of these five declarations is how the two start to drift. */
+.plaques {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 12px;
+}
+
+.plaque {
+    background: var(--tile);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+
     .label {
         color: var(--muted);
         font-size: 0.6rem;
         font-weight: 600;
         letter-spacing: 0.14em;
+        margin: 0;
         text-transform: uppercase;
     }
 
-    .dewpoint,
-    .wind {
-        align-items: baseline;
-        display: flex;
-        gap: 0.4rem;
+    /* popup.js writes a Beaufort colour to --wind-colour rather than to `color` directly, so a
+       light-dark() pair reaches CSS verbatim — same reason the comfort chip takes its two
+       colours that way. Every reading not coloured by force falls back to the plaque's ink. */
+    .reading,
+    .note {
+        color: var(--wind-colour, var(--ink));
     }
 
-    #pressure,
-    .wind {
-        color: var(--ink);
+    .reading {
+        font-family: var(--font-display);
+        font-size: 1.375rem;
         font-variant-numeric: tabular-nums;
-        margin-top: 0.35rem;
+        margin: 0;
     }
 
-    /* Filled with the row's own ink rather than a colour of its own: the accent ration is spent
-       on the ambient headline, and the sock is a reading, not this view's one hot element. */
-    .windsock {
-        align-self: center;
-        block-size: 1.1em;
-        fill: currentcolor;
-        inline-size: 1.1em;
+    .note {
+        font-size: 0.6875rem;
+        font-variant-numeric: tabular-nums;
+        margin: 0;
     }
 
-    /* popup.js draws no polygons at all for a wind nobody measured. Collapsing the empty box
-       keeps the row from holding a gap where a sock is not flying. */
-    .windsock:empty {
-        display: none;
+    /* The unit rides at the reading's own weight two steps down, so '2,990 ft' reads as one
+       figure rather than as two words of equal claim. */
+    .unit {
+        font-size: 0.75rem;
     }
 }
 
-.secondary {
-    #cloud-base {
-        color: var(--ink);
-        margin-bottom: 0.6rem;
+.plaque-dewpoint {
+    .reading {
+        font-size: 3.625rem;
+        line-height: 0.9;
+        text-align: center;
     }
 
-    #thunder {
-        /* Page order: the label paragraph, then the bar strip, then the bars it holds. */
-        .thunder-label {
-            color: var(--muted);
-            font-size: 0.6rem;
-            font-weight: 600;
-            letter-spacing: 0.14em;
-            margin-bottom: 0.35rem;
-            text-transform: uppercase;
-        }
+    .comfort {
+        margin: 0;
+        text-align: center;
+    }
 
-        .thunder-bars {
-            align-items: flex-end;
-            display: flex;
-            gap: 0.2rem;
-            height: 2.5rem;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
+    /* The chip's two colours are set inline by popup.js from comfort.js: the seven bands are a
+       data table, and seven classes here would be a second copy of it to keep in step. */
+    .comfort-chip {
+        background: var(--chip-background);
+        border-radius: 999px;
+        color: var(--chip-foreground);
+        display: inline-block;
+        font-size: 0.625rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        text-transform: capitalize;
+    }
+}
 
-        .thunder-bar {
-            background: var(--raised);
-            border-radius: 3px 3px 0 0;
-            flex: 1;
-            height: calc(var(--percent) * 1%);
-            /* A genuine 0% reading still reads as a bar, not a gap in the strip. */
-            min-height: 2px;
-        }
+.plaque-cloud {
+    block-size: 112px;
+    position: relative;
+
+    /* The sky is painted behind the text rather than beside it. The plaque is 112px tall either
+       way, and a reading over its own sky is the comparison the plaque exists to make. */
+    .sky {
+        inset: 0;
+        position: absolute;
+    }
+
+    /* --cloud is a rule and dash colour, never text — see the kit palette — which is exactly
+       what the computed base is: a line drawn across a picture, not a reading to be read off
+       it. It is painted last, over the layers, so an overcast lid cannot bury it. */
+    .computed-base {
+        stroke: var(--cloud);
+        stroke-dasharray: 4 4;
+        stroke-width: 1.5;
+    }
+
+    /* Distance by tone: a layer at or above the atlas's low/mid boundary sits a step further
+       back than the plaque's own tile, and one below it a step nearer. */
+    .layer-far {
+        fill: var(--panel);
+    }
+
+    .layer-near {
+        fill: var(--raised);
+    }
+
+    .plaque-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        position: relative;
+    }
+}
+
+.plaque-wind {
+    .wind-plot {
+        align-self: center;
+        block-size: 88px;
+        inline-size: 88px;
+    }
+
+    .compass {
+        fill: none;
+        stroke: var(--raised);
+        stroke-width: 2;
+    }
+
+    .cardinal {
+        fill: var(--muted);
+        font-size: 8px;
+        text-anchor: middle;
+    }
+
+    /* The station circle, the shaft and the marks take their stroke from popup.js, which is
+       where the Beaufort colour is decided; only the weights are settled here. */
+    .station {
+        fill: none;
+        stroke-width: 2.4;
+    }
+
+    .shaft {
+        stroke-linecap: round;
+        stroke-width: 2.76;
+    }
+
+    /* Every mark carries its colour on both fill and stroke, so popup.js never has to know a
+       pennant from a barb; these two zero whichever one the shape does not use. */
+    polyline.mark {
+        fill: none;
+    }
+
+    polygon.mark {
+        stroke: none;
+    }
+
+    /* Gust marks are drawn first and a shade thinner, so what shows past a sustained barb reads
+       as something behind it rather than as a second wind of equal standing. */
+    .mark-gust {
+        stroke-width: 2.4;
+    }
+
+    .mark-sustained {
+        stroke-width: 2.76;
+    }
+
+    /* 'unreported', 'variable' and 'no direction' are the absence of a heading rather than a
+       heading of their own, so the line reads a step quieter than one naming a compass point.
+       --muted clears AA on --tile (it does not on --panel — see palette.md). */
+    .note.no-heading {
+        color: var(--muted);
+    }
+
+    /* The gust takes its own force's colour on the same line, so a gust two forces above the
+       sustained wind says so before the number is read. */
+    .gust {
+        color: var(--wind-colour);
+    }
+}
+
+.plaque-pressure {
+    .barometer {
+        align-self: center;
+        block-size: 76px;
+        inline-size: 112px;
+    }
+
+    /* The dial's furniture is markup, not JS: it never changes, so a redraw should not have to
+       rebuild it, and here it can take Kit tokens instead of literal hexes written in script. */
+    .dial {
+        fill: none;
+        stroke: var(--raised);
+        stroke-linecap: round;
+        stroke-width: 8;
+    }
+
+    .ticks line {
+        stroke: var(--muted);
+        stroke-width: 1.5;
+    }
+
+    .scale {
+        fill: var(--muted);
+        font-size: 9px;
+    }
+
+    .needle {
+        stroke: var(--ink);
+        stroke-linecap: round;
+        stroke-width: 3;
+    }
+
+    .hub {
+        fill: var(--ink);
+    }
+
+    .trend {
+        align-items: center;
+        display: flex;
+        gap: 4px;
+    }
+
+    /* The one hot element this view spends its accent ration on (see kit-developer-edition's
+       "ration the orange"): the trend glyph, filled rather than coloured text — --accent as
+       text fails AA in the light scheme (2.6:1), and as a fill it is a shape, not a reading. */
+    .trend-glyph {
+        block-size: 10px;
+        fill: var(--accent);
+        flex: none;
+        inline-size: 10px;
+    }
+}
+
+.thunder {
+    margin: 8px 12px 12px;
+
+    /* Page order: the label, the bar strip, the hour axis under it. */
+    .thunder-label {
+        color: var(--muted);
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        margin: 0 0 0.35rem;
+        text-transform: uppercase;
+    }
+
+    .thunder-bars {
+        align-items: flex-end;
+        display: flex;
+        gap: 3px;
+        height: 40px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .thunder-bar {
+        background: var(--raised);
+        border-radius: 3px 3px 0 0;
+        flex: 1;
+        height: calc(var(--percent) * 1%);
+        /* A genuine 0% reading still reads as a bar, not a gap in the strip. */
+        min-height: 2px;
+    }
+
+    .thunder-axis {
+        color: var(--muted);
+        display: flex;
+        font-size: 0.6rem;
+        justify-content: space-between;
+        margin: 4px 0 0;
     }
 }
 
 /* #age and #provenance are permanent, not decorative — the design's substitute for de-tiding
-   the pressure trend (see the Task 9 brief). --tile is the ground here rather than the panel
-   above: --muted text fails AA on --panel (3.6:1, see palette.md) but clears it on --tile. */
+   the pressure trend. --tile is the ground here rather than the panel above: --muted text fails
+   AA on --panel (3.6:1, see palette.md) but clears it on --tile. */
 .footer {
     background: var(--tile);
-    border-radius: 0 0 12px 12px;
+    padding: 10px 16px;
 
-    #age,
-    #provenance {
+    p {
         color: var(--muted);
-        font-size: 0.75rem;
+        font-size: 0.6875rem;
+        margin: 0;
     }
 
     #provenance {
-        margin-top: 0.2rem;
+        margin-top: 2px;
     }
 }

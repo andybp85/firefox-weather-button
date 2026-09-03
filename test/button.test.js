@@ -71,7 +71,7 @@ test('the tooltip names the wind and its gust, whether or not the icon has room 
     const { action, painted } = await run({ fetch, stationId: 'KEWR' })
 
     assert.match(action.titles.at(-1), /wind NW 18 kt G 27$/)
-    assert.deepEqual(painted.at(-1).wind, { direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
+    assert.deepEqual(painted.at(-1).wind, { bearingDegrees: 320, direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
 })
 
 test('the button says so rather than showing a colour when no station is configured yet', async () => {
