@@ -31,7 +31,7 @@ test('toViewModel preserves the visibility string verbatim', () => {
 // that toViewModel hands the record over and carries the value out whole, rather than a sentence.
 test('toViewModel carries the decoded wind value rather than a description of it', () => {
     const view = toViewModel({ dewp: 14.4, reportTime: '2026-08-26T13:00:00.000Z', temp: 21.7, wdir: 320, wgst: 27, wspd: 18 })
-    assert.deepEqual(view.wind, { direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
+    assert.deepEqual(view.wind, { bearingDegrees: 320, direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' })
 })
 
 test('toViewModel describes an empty cloud layer list as clear', () => {

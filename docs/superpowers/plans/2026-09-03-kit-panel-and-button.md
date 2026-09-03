@@ -215,7 +215,7 @@ git commit -m "feat: add the Beaufort ramp as one source of force and colour"
 - Produces: `toWind` now returns `bearingDegrees` alongside `direction` when `wdir` is a number, and omits it
   otherwise; `announcedKnots({ gustKnots, knots }) → number`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `test/wind.test.js`. Change the existing import line to
 `import { NOTABLE_KNOTS, announcedKnots, isNotable, toWind } from '../src/wind.js'`, then append:
@@ -250,12 +250,12 @@ test('announcedKnots takes the gust when it is more than 10 kt over the sustaine
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "bearing|announcedKnots"`
 Expected: FAIL — `announcedKnots is not a function`, and the bearing case reports a missing property.
 
-- [ ] **Step 3: Extend the module**
+- [x] **Step 3: Extend the module**
 
 In `src/wind.js`, add beside `NOTABLE_KNOTS`:
 
@@ -290,13 +290,13 @@ In `toWind`, add the bearing to the returned value, above `direction`:
     }
 ```
 
-- [ ] **Step 4: Run the whole suite**
+- [x] **Step 4: Run the whole suite**
 
 Run: `npm test`
 Expected: PASS. `observation.test.js` asserts on whole wind values; if any of its expectations now miss
 `bearingDegrees`, add the property to that fixture's expectation — the new field is the point.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
