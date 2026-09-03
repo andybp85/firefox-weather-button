@@ -1161,7 +1161,7 @@ git commit -m "feat: add station-model wind barbs for the panel's wind plaque"
   `{ circles: [{ cx, cy, r }], ellipses: [{ cx, cy, rx, ry }], far: boolean, rects: [{ height, width, x, y }] }`,
   in the order given (high to low), every list always present so a consumer never branches on shape.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/cloud-sky.test.js`:
 
@@ -1255,12 +1255,12 @@ test('cloudSky leaves out a vertical visibility report', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern "skyHeight|cloudSky"`
 Expected: FAIL, `Cannot find module '../src/cloud-sky.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/cloud-sky.js`:
 
@@ -1349,12 +1349,12 @@ const toLayer = ({ baseFeet, cover }) => {
 export const cloudSky = ({ baseFeet, layers }) => ({ base: { y: skyHeight(baseFeet) }, layers: layers.filter(isDrawable).map(toLayer) })
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern "skyHeight|cloudSky"`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
