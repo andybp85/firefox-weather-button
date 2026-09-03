@@ -173,8 +173,15 @@ body {
         text-transform: uppercase;
     }
 
+    /* popup.js writes a Beaufort colour to --wind-colour rather than to `color` directly, so a
+       light-dark() pair reaches CSS verbatim — same reason the comfort chip takes its two
+       colours that way. Every reading not coloured by force falls back to the plaque's ink. */
+    .reading,
+    .note {
+        color: var(--wind-colour, var(--ink));
+    }
+
     .reading {
-        color: var(--ink);
         font-family: var(--font-display);
         font-size: 1.375rem;
         font-variant-numeric: tabular-nums;
@@ -182,7 +189,6 @@ body {
     }
 
     .note {
-        color: var(--ink);
         font-size: 0.6875rem;
         font-variant-numeric: tabular-nums;
         margin: 0;
@@ -264,6 +270,63 @@ body {
         align-self: center;
         block-size: 88px;
         inline-size: 88px;
+    }
+
+    .compass {
+        fill: none;
+        stroke: var(--raised);
+        stroke-width: 2;
+    }
+
+    .cardinal {
+        fill: var(--muted);
+        font-size: 8px;
+        text-anchor: middle;
+    }
+
+    /* The station circle, the shaft and the marks take their stroke from popup.js, which is
+       where the Beaufort colour is decided; only the weights are settled here. */
+    .station {
+        fill: none;
+        stroke-width: 2.4;
+    }
+
+    .shaft {
+        stroke-linecap: round;
+        stroke-width: 2.76;
+    }
+
+    /* Every mark carries its colour on both fill and stroke, so popup.js never has to know a
+       pennant from a barb; these two zero whichever one the shape does not use. */
+    polyline.mark {
+        fill: none;
+    }
+
+    polygon.mark {
+        stroke: none;
+    }
+
+    /* Gust marks are drawn first and a shade thinner, so what shows past a sustained barb reads
+       as something behind it rather than as a second wind of equal standing. */
+    .mark-gust {
+        stroke-width: 2.4;
+    }
+
+    .mark-sustained {
+        stroke-width: 2.76;
+    }
+
+    /* 'unreported', 'variable' and 'no direction' are the absence of a heading rather than a
+       heading of their own, so the line reads a step quieter than one naming a compass point.
+       --muted clears AA on --tile (it does not on --panel — see palette.md). */
+    .note.no-heading {
+        color: var(--muted);
+    }
+
+    /* The gust takes its own force's colour on the same line, so a gust two forces above the
+       sustained wind says so before the number is read. */
+    .gust {
+        color: var(--wind-colour);
     }
 }
 

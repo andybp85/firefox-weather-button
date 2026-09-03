@@ -26,7 +26,7 @@
                          that popup.js replaces the children of. Splitting them that way means a
                          redraw never has to rebuild the ring, the dial, or the ticks, and the
                          furniture can be styled in CSS with Kit tokens rather than written in
-                         JS as literal hexes. Tasks 9 to 11 add the furniture to each. -->
+                         JS as literal hexes. -->
                     <svg aria-hidden="true" class="sky" viewBox="0 0 136 112"><g id="sky"></g></svg>
                     <div class="plaque-text">
                         <p class="label">Cloud base</p>
@@ -36,8 +36,16 @@
                 </section>
                 <section class="plaque plaque-wind">
                     <p class="label">Wind</p>
-                    <!-- Station-model barbs on a compass ring, from wind-barbs.js. -->
-                    <svg aria-hidden="true" class="wind-plot" viewBox="0 0 88 88"><g id="wind-plot"></g></svg>
+                    <!-- The compass ring and its cardinals are the fixed furniture; the barbs
+                         popup.js draws from wind-barbs.js go in the <g>. -->
+                    <svg aria-hidden="true" class="wind-plot" viewBox="0 0 88 88">
+                        <circle class="compass" cx="44" cy="44" r="38" />
+                        <text class="cardinal" x="44" y="11">N</text>
+                        <text class="cardinal" x="81" y="47">E</text>
+                        <text class="cardinal" x="44" y="84">S</text>
+                        <text class="cardinal" x="7" y="47">W</text>
+                        <g id="wind-plot"></g>
+                    </svg>
                     <p class="reading" id="wind-speed"></p>
                     <p class="note" id="wind-direction"></p>
                 </section>

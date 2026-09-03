@@ -1,5 +1,7 @@
+import { beaufortColour, beaufortForce } from './beaufort.js'
 import { cloudSky } from './cloud-sky.js'
 import { comfortBand } from './comfort.js'
+import { windBarbs } from './wind-barbs.js'
 
 const HOUR_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
 const MILLISECONDS_PER_MINUTE = 60_000
@@ -98,20 +100,15 @@ const describeCloudLayers = cloudLayers =>
 const describeProvenance = ({ now, tendency }) =>
     `tendency: ${tendency.provenance} (${describeWindowHours(tendency)}h), ended ${describeElapsed({ now, observedAt: tendency.observedAt })}`
 
-const describeSource = direction => {
-    // Calm air and a measured wind whose station sent no wdir read alike: there is no heading
-    // to name. The plot says the same thing by laying its marks out with no shaft.
-    if (direction === undefined) return 'no direction'
-    // toWind names a VRB report 'variable', which is a state of the wind rather than a point on
-    // the compass: 'from variable' would read as a place.
-    if (direction === 'variable') return 'variable'
-    return `from ${direction}`
-}
+// Whether the direction line names a point on the compass. Calm air and a measured wind whose
+// station sent no wdir read alike: there is no heading to name, and the plot says the same thing
+// by laying its marks out with no shaft. toWind names a VRB report 'variable', which is a state
+// of the wind rather than a place — 'from variable' would read as one.
+const namesAHeading = direction => direction !== undefined && direction !== 'variable'
 
-const describeWindDirection = ({ direction, gustKnots }) => {
-    const source = describeSource(direction)
-    return gustKnots === undefined ? source : `${source} · G ${gustKnots}`
-}
+// The two non-headings are the only values left once namesAHeading has rejected one, so the
+// wording for each is the value itself or the words for its absence.
+const describeSource = direction => (namesAHeading(direction) ? `from ${direction}` : (direction ?? 'no direction'))
 
 // The chip's two colours come from comfort.js beside the reading, so they are set inline: the
 // seven bands are a data table, and seven CSS classes would be a second copy of it to keep in
@@ -158,21 +155,114 @@ const renderSky = ({ cloudBaseFeet, cloudLayers, document }) => {
     document.querySelector(SELECTORS.sky).replaceChildren(...layers.flatMap(layer => buildLayer({ ...layer, document })), dash)
 }
 
-// Calm and unreported each have to read as itself: calm air was measured and found still, an
-// unreported wind was not measured at all, and neither of them is "0 kt".
-const renderWind = ({ document, wind }) => {
+// The plot's own furniture, in the 88-unit box. calmRadius draws the station model's symbol for
+// calm — two rings, no shaft. A shaft of no length at some arbitrary heading would be a claim
+// about a direction calm does not have.
+const STATION = { calmRadius: 7.92, centre: { x: 44, y: 44 }, radius: 3.6 }
+
+const windColour = knots => beaufortColour(beaufortForce(knots))
+
+const buildStationRing = ({ colour, document, radius }) =>
+    buildSvg({
+        attributes: { class: 'station', cx: STATION.centre.x, cy: STATION.centre.y, r: radius, stroke: colour },
+        document,
+        name: 'circle',
+    })
+
+const buildShaft = ({ colour, document, shaft }) =>
+    buildSvg({
+        attributes: { class: 'shaft', stroke: colour, x1: shaft.from.x, x2: shaft.to.x, y1: shaft.from.y, y2: shaft.to.y },
+        document,
+        name: 'line',
+    })
+
+// Colour goes on both fill and stroke: the CSS zeroes whichever one the shape does not use, so
+// this never has to know a pennant from a barb.
+const buildMark = ({ colour, document, mark }) =>
+    buildSvg({
+        attributes: {
+            class: mark.gust ? 'mark mark-gust' : 'mark mark-sustained',
+            fill: colour,
+            points: mark.points.map(({ x, y }) => `${x},${y}`).join(' '),
+            stroke: colour,
+        },
+        document,
+        name: mark.filled ? 'polygon' : 'polyline',
+    })
+
+const renderWindPlot = ({ document, wind }) => {
+    const plot = document.querySelector(SELECTORS.windPlot)
+
+    // An unreported wind draws nothing at all: the bare compass ring in the markup is what
+    // "nobody measured this" looks like, and a station circle would assert a station reading.
     if (wind.state === 'unreported') {
-        writeReading({ document, selector: SELECTORS.windSpeed, text: PLACEHOLDER })
-        write({ document, selector: SELECTORS.windDirection, text: 'unreported' })
+        plot.replaceChildren()
         return
     }
 
-    // Calm carries no speed to put a unit on, and no direction either — so its line is
-    // describeWindDirection's own no-heading wording rather than a second literal to keep in step.
-    const speed = wind.state === 'calm' ? { text: 'calm' } : { text: String(wind.knots), unit: 'kt' }
+    const colour = windColour(wind.state === 'calm' ? 0 : wind.knots)
+    const station = buildStationRing({ colour, document, radius: STATION.radius })
 
-    writeReading({ document, selector: SELECTORS.windSpeed, ...speed })
-    write({ document, selector: SELECTORS.windDirection, text: describeWindDirection(wind) })
+    if (wind.state === 'calm') {
+        plot.replaceChildren(station, buildStationRing({ colour, document, radius: STATION.calmRadius }))
+        return
+    }
+
+    const { marks, shaft } = windBarbs(wind)
+    const gustColour = wind.gustKnots === undefined ? colour : windColour(wind.gustKnots)
+
+    plot.replaceChildren(
+        station,
+        ...(shaft === undefined ? [] : [buildShaft({ colour, document, shaft })]),
+        // windBarbs already puts the gust's marks first, so they land under the sustained ones.
+        ...marks.map(mark => buildMark({ colour: mark.gust ? gustColour : colour, document, mark })),
+    )
+}
+
+const buildGust = ({ document, gustKnots }) => {
+    const gust = document.createElement('span')
+
+    gust.className = 'gust'
+    gust.style.setProperty('--wind-colour', windColour(gustKnots))
+    gust.textContent = `G ${gustKnots}`
+    return gust
+}
+
+const renderWindDirection = ({ document, wind }) => {
+    const element = document.querySelector(SELECTORS.windDirection)
+    // A wind nobody measured has no direction to report either, and saying so is not the same
+    // claim as a measured wind whose station sent no wdir.
+    const source = wind.state === 'unreported' ? 'unreported' : describeSource(wind.direction)
+
+    element.classList.toggle('no-heading', !namesAHeading(wind.direction))
+    element.replaceChildren(
+        ...(wind.gustKnots === undefined ? [source] : [`${source} · `, buildGust({ document, gustKnots: wind.gustKnots })]),
+    )
+}
+
+// Calm and unreported each have to read as itself: calm air was measured and found still, an
+// unreported wind was not measured at all, and neither of them is "0 kt".
+const renderWind = ({ document, wind }) => {
+    const speed = document.querySelector(SELECTORS.windSpeed)
+
+    renderWindPlot({ document, wind })
+    renderWindDirection({ document, wind })
+
+    if (wind.state === 'unreported') {
+        writeReading({ document, selector: SELECTORS.windSpeed, text: PLACEHOLDER })
+        // A colour a successful render left here would paint the placeholder in the last good
+        // wind's force.
+        speed.style.removeProperty('--wind-colour')
+        return
+    }
+
+    // Calm carries no speed to put a unit on, and takes force 0's colour rather than the
+    // plaque's ink: it is the bottom of the same ramp the plot is drawn in, not the absence of
+    // a reading.
+    const calm = wind.state === 'calm'
+
+    writeReading({ document, selector: SELECTORS.windSpeed, ...(calm ? { text: 'calm' } : { text: String(wind.knots), unit: 'kt' }) })
+    speed.style.setProperty('--wind-colour', windColour(calm ? 0 : wind.knots))
 }
 
 // The barometer's scale, in hPa. 980 to 1050 covers everything a sea-level station reports

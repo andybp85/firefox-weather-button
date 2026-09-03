@@ -232,8 +232,10 @@ test('renderUnavailable strikes the instruments a successful render left standin
 
     assert.equal(document.querySelector('#barometer').children.length, 0)
     assert.equal(document.querySelector('#trend-glyph').children.length, 0)
-    // The sky goes with them: a dashed base left standing is a reading the popup no longer has.
+    // The sky and the wind plot go with them: shapes left standing are a reading the popup no
+    // longer has.
     assert.equal(document.querySelector('#sky').children.length, 0)
+    assert.equal(document.querySelector('#wind-plot').children.length, 0)
 })
 
 test('render dashes the computed base across the sky at its own height', () => {
@@ -288,4 +290,104 @@ test('render colours a high layer a step further away than a low one', () => {
     const [high, low] = [...document.querySelectorAll('#sky ellipse')].map(ellipse => ellipse.getAttribute('class'))
 
     assert.deepEqual({ high, low }, { high: 'layer-far', low: 'layer-near' })
+})
+
+const plotOf = ({ document, selector }) => [...document.querySelectorAll(`#wind-plot ${selector}`)]
+
+const coordinatesOf = element =>
+    Object.fromEntries(['x1', 'x2', 'y1', 'y2'].map(name => [name, Math.round(Number(element.getAttribute(name)) * 100) / 100]))
+
+test('render wires the plot shaft to point at where the wind comes from', () => {
+    // The station-model convention, and the opposite of the toolbar button's dart: a north wind
+    // puts the shaft above the station. Read as all four coordinates because the wiring this
+    // checks is windBarbs' from/to reaching the right pair of attributes.
+    const [shaft] = plotOf({
+        document: rendered(observed({ wind: { bearingDegrees: 0, direction: 'N', knots: 20, state: 'measured' } })),
+        selector: 'line',
+    })
+
+    assert.deepEqual(coordinatesOf(shaft), { x1: 44, x2: 44, y1: 40.4, y2: 14 })
+})
+
+test('render draws the station-model calm symbol rather than a wind of zero speed', () => {
+    // Two rings, no shaft. A shaft of no length at some arbitrary heading is not what calm
+    // looks like, and calm has no heading to draw one at.
+    const document = rendered(observed({ wind: { state: 'calm' } }))
+
+    assert.equal(plotOf({ document, selector: 'circle' }).length, 2)
+    assert.equal(plotOf({ document, selector: 'line' }).length, 0)
+})
+
+test('render strikes the plot a measured wind left standing when the next one is unreported', () => {
+    // The bare compass ring in the markup is what "nobody measured this" looks like. A plot
+    // left standing across a refresh is the last good wind dressed as the current one.
+    const document = rendered()
+    render({ document, model: { ...model, ...observed({ wind: { state: 'unreported' } }) }, now })
+
+    assert.equal(document.querySelector('#wind-plot').children.length, 0)
+})
+
+test('render draws no shaft when the wind has a speed but no bearing', () => {
+    const document = rendered(observed({ wind: { direction: 'variable', knots: 20, state: 'measured' } }))
+
+    assert.equal(plotOf({ document, selector: 'line' }).length, 0)
+    assert.equal(plotOf({ document, selector: 'polyline' }).length, 2)
+})
+
+test('render puts the gust marks behind the sustained ones, each in its own force colour', () => {
+    // WNW 22 gusting 31: three force-7 barbs behind, two force-6 barbs in front. SVG paints in
+    // document order, so the gust marks written first are what shows past the sustained ones.
+    const document = rendered(observed({ wind: { bearingDegrees: 292.5, direction: 'WNW', gustKnots: 31, knots: 22, state: 'measured' } }))
+    const marks = plotOf({ document, selector: 'polyline' })
+
+    assert.deepEqual(
+        marks.map(mark => mark.getAttribute('class')),
+        ['mark mark-gust', 'mark mark-gust', 'mark mark-gust', 'mark mark-sustained', 'mark mark-sustained'],
+    )
+    assert.equal(marks[0].getAttribute('stroke'), 'light-dark(#6f6d03, #f5f69c)')
+    assert.equal(marks.at(-1).getAttribute('stroke'), 'light-dark(#5e7216, #dcf59d)')
+})
+
+test('render fills a pennant rather than stroking it', () => {
+    const [pennant] = plotOf({
+        document: rendered(observed({ wind: { bearingDegrees: 180, direction: 'S', knots: 55, state: 'measured' } })),
+        selector: 'polygon',
+    })
+
+    assert.equal(pennant.getAttribute('points').split(' ').length, 3)
+    assert.equal(pennant.getAttribute('fill'), 'light-dark(#a65324, #f69c6e)')
+})
+
+test('render colours the speed by the sustained force and the gust by its own', () => {
+    const document = rendered(observed({ wind: { bearingDegrees: 270, direction: 'W', gustKnots: 32, knots: 18, state: 'measured' } }))
+
+    assert.equal(document.querySelector('#wind-speed').style.getPropertyValue('--wind-colour'), 'light-dark(#5a7203, #c8f640)')
+    assert.equal(document.querySelector('#wind-direction .gust').style.getPropertyValue('--wind-colour'), 'light-dark(#6f6d03, #f5f69c)')
+})
+
+test('render reads calm in the calm force colour rather than in the plaque ink', () => {
+    const document = rendered(observed({ wind: { state: 'calm' } }))
+
+    assert.equal(document.querySelector('#wind-speed').style.getPropertyValue('--wind-colour'), 'light-dark(#056eb2, #129bf7)')
+})
+
+test('render drops the force colour from a speed nobody measured', () => {
+    // A colour a successful render left on the speed would paint the placeholder in the last
+    // good wind's force.
+    const document = rendered()
+    render({ document, model: { ...model, ...observed({ wind: { state: 'unreported' } }) }, now })
+
+    assert.equal(document.querySelector('#wind-speed').style.getPropertyValue('--wind-colour'), '')
+})
+
+test('render mutes a direction line that names no heading', () => {
+    // 'variable', 'no direction' and 'unreported' are the absence of a heading rather than a
+    // heading of their own. Re-rendered onto one that names a point, the line has to come back.
+    const document = rendered(observed({ wind: { direction: 'variable', knots: 3, state: 'measured' } }))
+    const line = document.querySelector('#wind-direction')
+
+    assert.equal(line.classList.contains('no-heading'), true)
+
+    render({ document, model, now })
+    assert.equal(line.classList.contains('no-heading'), false)
 })
