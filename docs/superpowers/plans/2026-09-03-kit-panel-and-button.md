@@ -80,7 +80,7 @@ against the same yardstick.
   force; `beaufortForce(knots: number) → number` in 0..12; `beaufortColour(force: number) → string` of the form
   `light-dark(#light, #dark)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/beaufort.test.js`:
 
@@ -138,12 +138,12 @@ test('every force carries a light partner distinct from its dark colour', () => 
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern beaufort`
 Expected: FAIL, `Cannot find module '../src/beaufort.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/beaufort.js`:
 
@@ -185,12 +185,12 @@ export const beaufortForce = knots => BEAUFORT.findIndex(force => knots < force.
 export const beaufortColour = force => `light-dark(${BEAUFORT[force].light}, ${BEAUFORT[force].dark})`
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern beaufort`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
