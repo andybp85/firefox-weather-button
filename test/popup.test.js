@@ -37,6 +37,15 @@ const observed = observation => ({ observation: { ...model.observation, ...obser
 
 const textOf = ({ document, selector }) => document.querySelector(selector).textContent
 
+// The needle is read back as the angle it stands at rather than as its endpoint: an endpoint
+// assertion is the design's own arithmetic restated, and would pass whatever popup.js computed.
+const angleOf = ({ document, selector }) => {
+    const needle = document.querySelector(selector)
+    const run = Number(needle.getAttribute('x2')) - Number(needle.getAttribute('x1'))
+    const rise = Number(needle.getAttribute('y1')) - Number(needle.getAttribute('y2'))
+    return Math.round((Math.atan2(rise, run) * 180) / Math.PI)
+}
+
 test('render leads with the temperature as a bare degree reading', () => {
     assert.equal(textOf({ document: rendered(), selector: '#temperature' }), '71°')
 })
@@ -139,6 +148,43 @@ test('render still shows the trend when the newest report carries no pressure', 
     assert.equal(textOf({ document, selector: '#trend' }), '+1.5 / 3h')
 })
 
+test('render stands the needle upright at the middle of the barometer scale', () => {
+    // The dial runs 980 to 1050, so 1015 is straight up: 90 degrees off the horizontal.
+    const document = rendered(observed({ pressureHpa: 1015 }))
+
+    assert.equal(angleOf({ document, selector: '#barometer line' }), 90)
+})
+
+test('render swings the needle to the ends of the scale', () => {
+    assert.equal(angleOf({ document: rendered(observed({ pressureHpa: 980 })), selector: '#barometer line' }), 180)
+    assert.equal(angleOf({ document: rendered(observed({ pressureHpa: 1050 })), selector: '#barometer line' }), 0)
+})
+
+test('render clamps a reading off the end of the scale rather than swinging past it', () => {
+    // A landfalling hurricane reads under 950. A needle that keeps going wraps around the dial
+    // and reads as a high, which is the most dangerous thing this plaque could say.
+    assert.equal(angleOf({ document: rendered(observed({ pressureHpa: 940 })), selector: '#barometer line' }), 180)
+})
+
+test('render draws no needle and no hub when the newest report carries no pressure', () => {
+    // A hub with no needle reads as a broken instrument rather than as a missing reading.
+    const document = rendered(observed({ pressureHpa: undefined }))
+
+    assert.equal(document.querySelector('#barometer').children.length, 0)
+})
+
+test('render points the trend glyph the way the tendency does', () => {
+    const rising = rendered().querySelector('#trend-glyph polygon')
+    const falling = rendered({ tendency: { ...model.tendency, direction: 'falling' } }).querySelector('#trend-glyph polygon')
+
+    assert.equal(rising.getAttribute('points'), '5,1 9.5,8.5 0.5,8.5')
+    assert.equal(falling.getAttribute('points'), '5,8.5 9.5,1 0.5,1')
+})
+
+test('render refuses a trend it has no glyph for', () => {
+    assert.throws(() => rendered({ tendency: { ...model.tendency, direction: 'sideways' } }), /unknown pressure trend: sideways/)
+})
+
 test('render dates the footer from the pinned instant and joins with a middle dot', () => {
     const document = rendered()
 
@@ -176,4 +222,14 @@ test('renderUnavailable places every reading and states the reason in the footer
     assert.equal(textOf({ document, selector: '#age' }), 'no observation available — no station configured yet')
     assert.equal(textOf({ document, selector: '#provenance' }), 'tendency: unavailable')
     assert.equal(document.querySelector('#thunder').hidden, true)
+})
+
+test('renderUnavailable strikes the instruments a successful render left standing', () => {
+    // The popup renders, a later refresh fails, and both run against the same document: a needle
+    // and a trend glyph that survive that are the last good reading dressed as the current one.
+    const document = rendered()
+    renderUnavailable({ document, reason: 'the network went away' })
+
+    assert.equal(document.querySelector('#barometer').children.length, 0)
+    assert.equal(document.querySelector('#trend-glyph').children.length, 0)
 })

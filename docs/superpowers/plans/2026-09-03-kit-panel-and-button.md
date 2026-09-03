@@ -2261,7 +2261,7 @@ deprecated. The three instruments land in the next three tasks."
 - Consumes: nothing new.
 - Produces: nothing new exported. `render` now fills `#barometer` and `#trend-glyph`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `test/popup.test.js`:
 
@@ -2311,12 +2311,12 @@ test('render refuses a trend it has no glyph for', () => {
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "needle|trend glyph"`
 Expected: FAIL, `#barometer line` is null.
 
-- [ ] **Step 3: Add the dial's furniture to the markup**
+- [x] **Step 3: Add the dial's furniture to the markup**
 
 In `src/popup.html`, replace the pressure plaque's barometer `<svg>` with:
 
@@ -2336,7 +2336,7 @@ In `src/popup.html`, replace the pressure plaque's barometer `<svg>` with:
                     </svg>
 ```
 
-- [ ] **Step 4: Style the dial**
+- [x] **Step 4: Style the dial**
 
 Inside the `.plaque-pressure` block in `src/ui.css`, above `.trend`:
 
@@ -2371,7 +2371,7 @@ Inside the `.plaque-pressure` block in `src/ui.css`, above `.trend`:
     }
 ```
 
-- [ ] **Step 5: Draw the needle and the glyph**
+- [x] **Step 5: Draw the needle and the glyph**
 
 In `src/popup.js`, add the namespace constant back beside the others:
 
@@ -2473,12 +2473,12 @@ In `renderUnavailable`, empty the dial and clear the glyph above the existing pr
     document.querySelector(SELECTORS.trendGlyph).replaceChildren()
 ```
 
-- [ ] **Step 6: Run the tests and watch them pass**
+- [x] **Step 6: Run the tests and watch them pass**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 7: Format, lint, commit**
+- [x] **Step 7: Format, lint, commit**
 
 ```bash
 npm run format

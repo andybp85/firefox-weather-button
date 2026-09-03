@@ -3,6 +3,7 @@ import { comfortBand } from './comfort.js'
 const HOUR_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
 const MILLISECONDS_PER_MINUTE = 60_000
 const PLACEHOLDER = '—'
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 const WHOLE_FEET_FORMAT = new Intl.NumberFormat()
 
 // The one place every element id popup.html carries is spelled out — render() and
@@ -31,6 +32,16 @@ const SELECTORS = {
 
 const write = ({ document, selector, text }) => {
     document.querySelector(selector).textContent = text
+}
+
+// Every mark the three plots draw is one namespaced element with a handful of attributes, so
+// this is the whole of their DOM vocabulary: the geometry modules say what to draw, this says
+// how one of them becomes an element. createElement would build an HTML element of the same
+// name, which lays out as nothing inside an <svg>.
+const buildSvg = ({ attributes, document, name }) => {
+    const element = document.createElementNS(SVG_NAMESPACE, name)
+    for (const [attribute, value] of Object.entries(attributes)) element.setAttribute(attribute, value)
+    return element
 }
 
 const buildUnit = ({ document, unit }) => {
@@ -134,13 +145,79 @@ const renderWind = ({ document, wind }) => {
     write({ document, selector: SELECTORS.windDirection, text: describeWindDirection(wind) })
 }
 
+// The barometer's scale, in hPa. 980 to 1050 covers everything a sea-level station reports
+// short of a landfalling hurricane, and the clamp is what keeps the needle on the dial when one
+// arrives: a needle that keeps swinging wraps past the top and reads as a high, which is the
+// most dangerous thing this plaque could say.
+const BAROMETER = { high: 1050, low: 980 }
+const NEEDLE = { centre: { x: 56, y: 56 }, hubRadius: 4.5, length: 38.7 }
+
+// The three trend glyphs in the 10-unit box the plaque gives them — the same shapes the toolbar
+// button cuts into its comfort band. Steady is a dash rather than a flat arrow: an arrow with no
+// direction to point reads as a broken up-arrow.
+const TREND_POINTS = {
+    falling: '5,8.5 9.5,1 0.5,1',
+    rising: '5,1 9.5,8.5 0.5,8.5',
+    steady: '0.5,4 9.5,4 9.5,6 0.5,6',
+}
+
+const clamp = ({ high, low, value }) => Math.min(Math.max(value, low), high)
+
+// Left is the low end of the scale, so the angle runs backwards from pi to zero.
+const needleAngle = hPa => {
+    const span = BAROMETER.high - BAROMETER.low
+    return Math.PI * (1 - (clamp({ ...BAROMETER, value: hPa }) - BAROMETER.low) / span)
+}
+
+const renderBarometer = ({ document, pressureHpa }) => {
+    const dial = document.querySelector(SELECTORS.barometer)
+
+    // A hub with no needle reads as a broken instrument rather than as a missing reading, so a
+    // SPECI with no sea-level pressure gets neither of them.
+    if (pressureHpa === undefined) {
+        dial.replaceChildren()
+        return
+    }
+
+    const angle = needleAngle(pressureHpa)
+    dial.replaceChildren(
+        buildSvg({
+            attributes: {
+                class: 'needle',
+                x1: NEEDLE.centre.x,
+                x2: NEEDLE.centre.x + NEEDLE.length * Math.cos(angle),
+                y1: NEEDLE.centre.y,
+                y2: NEEDLE.centre.y - NEEDLE.length * Math.sin(angle),
+            },
+            document,
+            name: 'line',
+        }),
+        buildSvg({
+            attributes: { class: 'hub', cx: NEEDLE.centre.x, cy: NEEDLE.centre.y, r: NEEDLE.hubRadius },
+            document,
+            name: 'circle',
+        }),
+    )
+}
+
+const renderTrendGlyph = ({ direction, document }) => {
+    const points = TREND_POINTS[direction]
+    // resolveTendency only ever names these three, so an unknown one is a wiring error and not a
+    // reading the plaque should quietly render blank.
+    if (points === undefined) throw new Error(`cannot draw an unknown pressure trend: ${direction}`)
+
+    document.querySelector(SELECTORS.trendGlyph).replaceChildren(buildSvg({ attributes: { points }, document, name: 'polygon' }))
+}
+
 // SPECI reports omit sea-level pressure, and a SPECI can be the newest observation. The trend
 // still resolves because it comes from the series, not the newest record alone, so it must
 // render even when the absolute reading cannot — never the literal string "undefined".
 const renderPressure = ({ document, observation, tendency }) => {
     const reading = observation.pressureHpa === undefined ? PLACEHOLDER : String(observation.pressureHpa)
 
+    renderBarometer({ document, pressureHpa: observation.pressureHpa })
     writeReading({ document, selector: SELECTORS.pressure, text: reading })
+    renderTrendGlyph({ direction: tendency.direction, document })
     write({ document, selector: SELECTORS.trend, text: describeTrend(tendency) })
 }
 
@@ -203,6 +280,10 @@ export const renderUnavailable = ({ document, reason }) => {
 
     writeReading({ document, selector: SELECTORS.cloudBase, text: PLACEHOLDER })
     renderWind({ document, wind: { state: 'unreported' } })
+    // A needle and a glyph a successful render left standing would be the last good reading
+    // dressed as the current one, so both are struck rather than left in place.
+    document.querySelector(SELECTORS.barometer).replaceChildren()
+    document.querySelector(SELECTORS.trendGlyph).replaceChildren()
     writeReading({ document, selector: SELECTORS.pressure, text: PLACEHOLDER })
     write({ document, selector: SELECTORS.trend, text: PLACEHOLDER })
 

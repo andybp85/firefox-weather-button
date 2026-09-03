@@ -255,6 +255,35 @@ body {
         inline-size: 112px;
     }
 
+    /* The dial's furniture is markup, not JS: it never changes, so a redraw should not have to
+       rebuild it, and here it can take Kit tokens instead of literal hexes written in script. */
+    .dial {
+        fill: none;
+        stroke: var(--raised);
+        stroke-linecap: round;
+        stroke-width: 8;
+    }
+
+    .ticks line {
+        stroke: var(--muted);
+        stroke-width: 1.5;
+    }
+
+    .scale {
+        fill: var(--muted);
+        font-size: 9px;
+    }
+
+    .needle {
+        stroke: var(--ink);
+        stroke-linecap: round;
+        stroke-width: 3;
+    }
+
+    .hub {
+        fill: var(--ink);
+    }
+
     .trend {
         align-items: center;
         display: flex;
