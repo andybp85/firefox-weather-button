@@ -13,7 +13,7 @@ const now = Date.parse('2026-08-26T13:06:00.000Z')
 const model = {
     observation: {
         cloudBaseFeet: 2994,
-        clouds: 'SCT 25000 ft',
+        cloudLayers: [{ baseFeet: 25000, cover: 'SCT' }],
         dewpointFahrenheit: 58,
         observedAt: '2026-08-26T13:00:00.000Z',
         pressureHpa: 1019.1,
@@ -86,6 +86,26 @@ test('render keeps the wind out of the ambient line', () => {
     const document = popupDocument()
     render({ document, model, now })
     assert.doesNotMatch(document.querySelector('.ambient-primary').textContent, /kt/)
+})
+
+// The header writes the layers itself, from the same list the cloud plaque paints, so the two
+// cannot disagree about what the station reported.
+test('render writes the cloud layers high to low with thousands separators', () => {
+    const document = popupDocument()
+    const lowerDeck = { baseFeet: 4500, cover: 'BKN' }
+    const twoLayers = { ...model, observation: { ...model.observation, cloudLayers: [...model.observation.cloudLayers, lowerDeck] } }
+
+    render({ document, model: twoLayers, now })
+
+    assert.equal(document.querySelector('.ambient-clouds').textContent, 'SCT 25,000 · BKN 4,500')
+})
+
+test('render calls a sky with no reported layers clear', () => {
+    const document = popupDocument()
+
+    render({ document, model: { ...model, observation: { ...model.observation, cloudLayers: [] } }, now })
+
+    assert.equal(document.querySelector('.ambient-clouds').textContent, 'clear')
 })
 
 test('render shows the computed cloud base', () => {

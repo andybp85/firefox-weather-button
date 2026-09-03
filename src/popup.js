@@ -6,6 +6,7 @@ const HOUR_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
 const MILLISECONDS_PER_MINUTE = 60_000
 const PLACEHOLDER = '—'
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+const WHOLE_FEET_FORMAT = new Intl.NumberFormat()
 
 // The sock is drawn into popup.html's 24-unit viewBox. This pivot and reach hold the mast, the
 // cone at every lift, and the gust tick that flies past it inside that square.
@@ -50,6 +51,13 @@ const describeHpaDelta = hPa => (hPa > 0 ? `+${hPa}` : `${hPa}`)
 const describeWindowHours = tendency => Math.round(tendency.windowHours)
 
 const describeTrend = tendency => `${ARROWS[tendency.direction]} ${describeHpaDelta(tendency.hPa)} / ${describeWindowHours(tendency)}h`
+
+// The header's own wording of the layers, built from the same list the cloud plaque paints, so
+// the sentence and the picture can never disagree about what the station reported.
+const describeCloudLayers = cloudLayers =>
+    cloudLayers.length === 0
+        ? 'clear'
+        : cloudLayers.map(({ baseFeet, cover }) => `${cover} ${WHOLE_FEET_FORMAT.format(baseFeet)}`).join(' · ')
 
 // AWC never sends a word here: it sends "10+" or a number, and omits visib when unmeasured.
 // 'unreported' is manufactured by observation.js's toViewModel for that omission (the coupling
@@ -124,7 +132,7 @@ export const render = ({ document, model, now }) => {
         selector: SELECTORS.ambientPrimary,
         text: `${observation.temperatureFahrenheit}F   ${describeVisibility(observation.visibility)}`,
     })
-    write({ document, selector: SELECTORS.ambientClouds, text: observation.clouds })
+    write({ document, selector: SELECTORS.ambientClouds, text: describeCloudLayers(observation.cloudLayers) })
     write({ document, selector: SELECTORS.dewpoint, text: `${observation.dewpointFahrenheit}F` })
     write({ document, selector: SELECTORS.pressure, text: describePressure({ observation, tendency }) })
     write({ document, selector: SELECTORS.wind, text: describeWind(observation.wind) })

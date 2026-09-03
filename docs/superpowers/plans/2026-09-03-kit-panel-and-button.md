@@ -1379,7 +1379,7 @@ git commit -m "feat: add the cloud plaque's height scale, puffs, and overcast li
 - Produces: `toViewModel` returns `cloudLayers: [{ baseFeet, cover }]`, sorted high to low, and no longer returns
   `clouds`. Layers with no reported base are dropped; VV layers are kept here and skipped at draw time.
 
-- [ ] **Step 1: Rewrite the cloud tests**
+- [x] **Step 1: Rewrite the cloud tests**
 
 In `test/observation.test.js`, replace the three tests that assert on `view.clouds` with:
 
@@ -1418,12 +1418,12 @@ test('toViewModel sorts the layers high to low so the plaque paints the near one
 })
 ```
 
-- [ ] **Step 2: Run the tests and watch them fail**
+- [x] **Step 2: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern toViewModel`
 Expected: FAIL, `cloudLayers` is undefined.
 
-- [ ] **Step 3: Replace the sentence with the data**
+- [x] **Step 3: Replace the sentence with the data**
 
 In `src/observation.js`, delete `describeCloudLayer` and `describeClouds`, and add:
 
@@ -1447,7 +1447,7 @@ const toCloudLayers = clouds =>
 Replace the `clouds: describeClouds(clouds)` line in the returned object with `cloudLayers: toCloudLayers(clouds)`,
 keeping the properties alphabetized (`cloudBaseFeet`, then `cloudLayers`, then `dewpointFahrenheit`).
 
-- [ ] **Step 4: Keep the popup reading the same list**
+- [x] **Step 4: Keep the popup reading the same list**
 
 `popup.js` still writes the deleted `clouds` sentence into the ambient line. That line is rebuilt properly in Task 8;
 here it only needs to stop reading a field that no longer exists, so the suite stays green at this commit. In
@@ -1469,13 +1469,13 @@ const WHOLE_FEET_FORMAT = new Intl.NumberFormat()
 Change the ambient-clouds write in `render` from `text: observation.clouds` to
 `text: describeCloudLayers(observation.cloudLayers)`.
 
-- [ ] **Step 5: Update the popup test's clouds expectation**
+- [x] **Step 5: Update the popup test's clouds expectation**
 
 In `test/popup.test.js`, any fixture passing `clouds: 'FEW 7000 ft, ...'` now passes
 `cloudLayers: [{ baseFeet: 7000, cover: 'FEW' }, ...]`, and the expected text becomes the joined form
 (`FEW 7,000 · BKN 25,000`). Run `npm test` until green.
 
-- [ ] **Step 6: Format, lint, commit**
+- [x] **Step 6: Format, lint, commit**
 
 ```bash
 npm run format
