@@ -1,7 +1,7 @@
 # Kit panel and button — Design
 
 - **Date:** 2026-09-03
-- **Status:** Approved, pending implementation plan
+- **Status:** Approved; decisions resolved 2026-09-03; plan at `docs/superpowers/plans/2026-09-03-kit-panel-and-button.md`
 - **Version target:** 0.3.0
 - **Bean:** firefox-weather-button-gxdu (design), firefox-weather-button-o09n (release)
 - **Canvas:** [Weather Button Panel](https://claude.ai/code/artifact/57afcd6c-62e7-4886-90df-501611581e30) — page 1
@@ -181,9 +181,9 @@ A puff of half-width `rx` at row `y`, centre `cx`:
 An OVC lid is a rect from `x −4` to `140`, from `y − 2.88` to the foot, with five circles r 7.92 on its top edge at
 `x` 10.88, 35.36, 62.56, 89.76, 116.96.
 
-Colour: a layer at or above the high-cloud threshold is `--panel` (a step further away); below it, `--raised`. The
-threshold is an open decision below. VV (vertical visibility) and layers with no base are not drawn. CLR/SKC draws
-no layer.
+Colour: a layer at 6,500 ft or above is `--panel` (a step further away); below it, `--raised`. The cut is the
+low/mid cloud boundary in the international cloud atlas — see *Resolved decisions*. VV (vertical visibility) and
+layers with no base are not drawn. CLR/SKC draws no layer.
 
 `observation.js` must expose the layers as data: `cloudLayers: [{ baseFeet, cover }]`, sorted high to low, in
 addition to (then instead of) the `clouds` sentence, which nothing reads once the header renders the layers itself.
@@ -218,8 +218,9 @@ WNW 22 G 31: three force-7 barbs behind, two force-6 barbs in front. N 38 → 40
 S 55 G 65: pennant plus one half (sustained) over pennant plus one full plus one half (gust).
 
 Bearing needs degrees. `wind.js` keeps the cardinal `direction` for text and adds `bearingDegrees` when the station
-sent a number. A variable or missing bearing draws the station circle and the marks at no shaft — see the open
-decision. An unreported wind draws the ring alone, speed `—`, direction line `unreported` in `--muted`.
+sent a number. A variable or missing bearing draws the station circle and lays the marks out on a notional vertical
+with no shaft drawn, and the direction line reads `variable` or `no direction` in `--muted` — see *Resolved
+decisions*. An unreported wind draws the ring alone, speed `—`, direction line `unreported` in `--muted`.
 
 ### Pressure plaque
 
@@ -329,17 +330,22 @@ The barometer's needle angle is three lines and lives in `popup.js`.
 - `popup.test.js` — jsdom reads back the SVG points and inline colours; the unavailable path; the header's cloud
   line ordering and separators.
 
-## Open decisions
+## Resolved decisions
 
-1. **High-cloud colour threshold.** The artboard paints 12,000 ft in `--panel` and 4,500 in `--raised`; the cut is
-   not recorded. Recommend 6,500 ft, the low/mid cloud boundary in the international cloud atlas.
-2. **Notable wind with no bearing** (`VRB`, or a station that omits `wdir`). The dart cannot point. Recommend drawing
-   a ring at the plot centre, r 10, stroke 6, in the force colour: speed without a heading. The panel plot draws its
-   marks at no shaft in the same case; recommend the same ring there.
-3. **Dart sense.** Downwind is settled; the panel's barbs point the other way. Flip the dart only if it grates on a
-   real toolbar.
-4. **16 px legibility.** The dart is about 8 px long and 6 px wide on the toolbar. Direction and colour read in the
-   local preview; the real toolbar is still to be checked. Verification bean firefox-weather-button-4q55 covers it.
+Settled 2026-09-03, before the implementation plan was written. Each was put to the user and each took the
+recommendation the design pass had made.
+
+1. **High-cloud colour threshold: 6,500 ft.** The low/mid boundary in the international cloud atlas. A layer at or
+   above it paints `--panel`, below it `--raised`. The artboard agrees: 12,000 ft far, 4,500 ft near. Two of the
+   atlas's three tiers collapse into one colour; a third tone was rejected as too much for a 112 px plaque.
+2. **Notable wind with no bearing: a force-colour ring on the button, shaftless barbs on the panel.** The button
+   draws a ring about the plot centre, r 10, stroke 6, in the force colour — speed with no heading claimed. The panel
+   lays its marks out on a notional vertical and draws no shaft; the missing shaft is the signal, and the direction
+   line reads `variable` or `no direction` in `--muted` beside it.
+3. **Dart sense: downwind, unchanged.** The button follows the map convention and the panel's barbs keep the
+   station-model one. The split is deliberate. Revisit only if it grates on a real toolbar.
+4. **16 px legibility: deferred to the verification bean.** Implement the dart as specified. Bean
+   firefox-weather-button-4q55 (controlled-environment testing) covers the real-toolbar look after 0.3.0 lands.
 
 ## Code rules
 
