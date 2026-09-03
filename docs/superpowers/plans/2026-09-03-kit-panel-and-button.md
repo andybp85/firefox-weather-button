@@ -898,7 +898,7 @@ git commit -m "feat: draw the toolbar button as a comfort band, a trend notch, a
   `{ filled: boolean, gust: boolean, points: [{ x, y }] }` — two points for a barb, three for a filled pennant. Gust
   marks come first. `shaft` is `{ from: { x, y }, to: { x, y } }` and is absent when there is no bearing.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/wind-barbs.test.js`:
 
@@ -1006,12 +1006,12 @@ test('windBarbs draws nothing for a calm wind', () => {
 })
 ```
 
-- [ ] **Step 2: Run the test and watch it fail**
+- [x] **Step 2: Run the test and watch it fail**
 
 Run: `npm test -- --test-name-pattern windBarbs`
 Expected: FAIL, `Cannot find module '../src/wind-barbs.js'`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `src/wind-barbs.js`:
 
@@ -1129,12 +1129,12 @@ export const windBarbs = ({ bearingDegrees, gustKnots, knots }) => {
 }
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 Run: `npm test -- --test-name-pattern windBarbs`
 Expected: PASS, 9 tests.
 
-- [ ] **Step 5: Format, lint, commit**
+- [x] **Step 5: Format, lint, commit**
 
 ```bash
 npm run format
