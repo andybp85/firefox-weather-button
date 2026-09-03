@@ -62,10 +62,9 @@ export const isNotable = wind => (wind.state === 'measured' ? isBrisk(wind) : fa
 // over it to be the reading that matters.
 export const announcedKnots = ({ gustKnots, knots }) => (gustKnots - knots > GUST_MARGIN_KNOTS ? gustKnots : knots)
 
-// The one wording of a wind, shared by the popup's row and the button's tooltip so the two can
-// never describe the same reading differently. 'calm' and 'unreported' are the two things a wind
-// can be that are not a measurement, and each has to read as itself: calm air was measured and
-// found still, an unreported wind was not measured at all, and neither of them is "0 kt".
+// The button tooltip's wording of a wind. The popup's plaque splits the same reading across its
+// speed and direction lines instead, so this is no longer a shared wording; it stays here
+// because 'calm' and 'unreported' are decisions about the value, not about the tooltip.
 export const describeWind = wind => {
     if (wind.state === 'calm') return 'calm'
     if (wind.state === 'unreported') return 'unreported'

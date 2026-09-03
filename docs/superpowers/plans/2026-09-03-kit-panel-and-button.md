@@ -1508,7 +1508,7 @@ markup and their box here and are drawn in Tasks 9, 10, and 11. The popup is ful
   `SELECTORS` gains `barometer`, `clouds`, `comfort`, `sky`, `temperature`, `trend`, `trendGlyph`, `visibility`,
   `windDirection`, `windPlot`, `windSpeed`, and loses `ambientClouds`, `ambientPrimary`, `wind`, `windsock`.
 
-- [ ] **Step 1: Replace the popup's body**
+- [x] **Step 1: Replace the popup's body**
 
 Replace everything between `<body>` and `</body>` in `src/popup.html`:
 
@@ -1570,7 +1570,7 @@ Replace everything between `<body>` and `</body>` in `src/popup.html`:
         <script src="/src/popup-main.js" type="module"></script>
 ```
 
-- [ ] **Step 2: Replace the panel's styles**
+- [x] **Step 2: Replace the panel's styles**
 
 In `src/ui.css`, delete everything from the `/* .popup is the toolbar action's ... */` comment to the end of the file
 and put this in its place. `:root`, `body`, and `.options` above it are untouched.
@@ -1801,7 +1801,7 @@ and put this in its place. `:root`, `body`, and `.options` above it are untouche
 }
 ```
 
-- [ ] **Step 3: Rewrite the popup's tests**
+- [x] **Step 3: Rewrite the popup's tests**
 
 Replace `test/popup.test.js` entirely:
 
@@ -1976,12 +1976,12 @@ test('renderUnavailable places every reading and states the reason in the footer
 })
 ```
 
-- [ ] **Step 4: Run the tests and watch them fail**
+- [x] **Step 4: Run the tests and watch them fail**
 
 Run: `npm test -- --test-name-pattern "render"`
 Expected: FAIL. `#temperature` does not exist yet in `popup.js`'s selector list.
 
-- [ ] **Step 5: Rewrite `popup.js`**
+- [x] **Step 5: Rewrite `popup.js`**
 
 Replace `src/popup.js`:
 
@@ -2198,7 +2198,7 @@ export const renderUnavailable = ({ document, reason }) => {
 }
 ```
 
-- [ ] **Step 6: Delete the windsock and correct the comment it left behind**
+- [x] **Step 6: Delete the windsock and correct the comment it left behind**
 
 ```bash
 git rm src/windsock.js test/windsock.test.js
@@ -2213,7 +2213,7 @@ tooltip. The popup no longer uses it — the plaque splits the reading across tw
 // because 'calm' and 'unreported' are decisions about the value, not about the tooltip.
 ```
 
-- [ ] **Step 7: Run everything**
+- [x] **Step 7: Run everything**
 
 ```bash
 npm test
@@ -2223,7 +2223,7 @@ npx web-ext lint --source-dir . --ignore-files "node_modules/**" "test/**" "docs
 
 Expected: all green. `popup-main.test.js` may need its fixture updated to the new observation shape; do that if so.
 
-- [ ] **Step 8: Look at the panel**
+- [ ] **Step 8: Look at the panel** (not done: no browser in this lane — see the Task 8 report)
 
 ```bash
 npm run preview
@@ -2232,7 +2232,7 @@ npm run preview
 Open <http://127.0.0.1:8765/src/popup.html>. The plaques will have empty instrument boxes — that is expected until
 Task 11. Check the grid, the chip, the footer, and that nothing overflows 304 px. Stop the server.
 
-- [ ] **Step 9: Format, lint, commit**
+- [x] **Step 9: Format, lint, commit**
 
 ```bash
 npm run format

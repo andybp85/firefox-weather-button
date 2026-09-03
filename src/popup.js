@@ -1,38 +1,50 @@
-import { describeWind } from './wind.js'
-import { windsockPolygons } from './windsock.js'
+import { comfortBand } from './comfort.js'
 
-const ARROWS = { falling: '↓', rising: '↑', steady: '→' }
 const HOUR_FORMAT = new Intl.DateTimeFormat(undefined, { hour: 'numeric' })
 const MILLISECONDS_PER_MINUTE = 60_000
 const PLACEHOLDER = '—'
-const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 const WHOLE_FEET_FORMAT = new Intl.NumberFormat()
-
-// The sock is drawn into popup.html's 24-unit viewBox. This pivot and reach hold the mast, the
-// cone at every lift, and the gust tick that flies past it inside that square.
-const SOCK_ORIGIN = { x: 5, y: 4 }
-const SOCK_SCALE = 13
 
 // The one place every element id popup.html carries is spelled out — render() and
 // renderUnavailable() both write through this, rather than each holding its own copy of the
-// selector strings, so a rename can't silently desync the two (renderUnavailable previously
-// lived in popup-main.js with its own hand-copied selectors, untested and unenforced).
+// selector strings, so a rename can't silently desync the two.
 const SELECTORS = {
-    ambientClouds: '.ambient-clouds',
-    ambientPrimary: '.ambient-primary',
     age: '#age',
+    barometer: '#barometer',
     cloudBase: '#cloud-base',
+    clouds: '#clouds',
+    comfort: '#comfort',
     dewpoint: '#dewpoint',
     pressure: '#pressure',
     provenance: '#provenance',
+    sky: '#sky',
+    temperature: '#temperature',
     thunder: '#thunder',
     thunderBars: '.thunder-bars',
-    wind: '#wind',
-    windsock: '.windsock',
+    trend: '#trend',
+    trendGlyph: '#trend-glyph',
+    visibility: '#visibility',
+    windDirection: '#wind-direction',
+    windPlot: '#wind-plot',
+    windSpeed: '#wind-speed',
 }
 
 const write = ({ document, selector, text }) => {
     document.querySelector(selector).textContent = text
+}
+
+const buildUnit = ({ document, unit }) => {
+    const span = document.createElement('span')
+    span.className = 'unit'
+    span.textContent = unit
+    return span
+}
+
+// A reading and its unit are one line in two type sizes, so the unit is its own element. It is
+// written rather than left in the markup because 'calm' and the placeholder carry no unit.
+const writeReading = ({ document, selector, text, unit }) => {
+    const element = document.querySelector(selector)
+    element.replaceChildren(...(unit === undefined ? [text] : [`${text} `, buildUnit({ document, unit })]))
 }
 
 const describeElapsed = ({ now, observedAt }) => {
@@ -41,8 +53,8 @@ const describeElapsed = ({ now, observedAt }) => {
     return `${Math.round(minutes / 60)}h ago`
 }
 
-// A reported or computed tendency already carries its sign for a fall (e.g. -1.2); only
-// the positive case is missing one. Steady is exactly 0 and prints bare either way.
+// A reported or computed tendency already carries its sign for a fall (e.g. -1.2); only the
+// positive case is missing one. Steady is exactly 0 and prints bare either way.
 const describeHpaDelta = hPa => (hPa > 0 ? `+${hPa}` : `${hPa}`)
 
 // windowHours is a display concern, not a domain one: resolveTendency's computed path rarely
@@ -50,7 +62,14 @@ const describeHpaDelta = hPa => (hPa > 0 ? `+${hPa}` : `${hPa}`)
 // read as "3h" — round here rather than adding a defensive branch to tendency.js for it.
 const describeWindowHours = tendency => Math.round(tendency.windowHours)
 
-const describeTrend = tendency => `${ARROWS[tendency.direction]} ${describeHpaDelta(tendency.hPa)} / ${describeWindowHours(tendency)}h`
+// No arrow in the words: the glyph beside them is the direction, drawn as a shape so it lands
+// the same weight at every zoom level a font would have hinted differently.
+const describeTrend = tendency => `${describeHpaDelta(tendency.hPa)} / ${describeWindowHours(tendency)}h`
+
+// AWC never sends a word here: it sends "10+" or a number, and omits visib when unmeasured.
+// 'unreported' is manufactured by observation.js's toViewModel for that omission (the coupling
+// is flagged there too). Appending "mi" to it reads as a bogus unit, so the unit is dropped.
+const describeVisibility = visibility => (visibility === 'unreported' ? visibility : `${visibility} mi`)
 
 // The header's own wording of the layers, built from the same list the cloud plaque paints, so
 // the sentence and the picture can never disagree about what the station reported.
@@ -58,11 +77,6 @@ const describeCloudLayers = cloudLayers =>
     cloudLayers.length === 0
         ? 'clear'
         : cloudLayers.map(({ baseFeet, cover }) => `${cover} ${WHOLE_FEET_FORMAT.format(baseFeet)}`).join(' · ')
-
-// AWC never sends a word here: it sends "10+" or a number, and omits visib when unmeasured.
-// 'unreported' is manufactured by observation.js's toViewModel for that omission (the coupling
-// is flagged there too). Appending "mi" to it reads as a bogus unit, so the unit is dropped.
-const describeVisibility = visibility => (visibility === 'unreported' ? visibility : `${visibility} mi`)
 
 // The tendency's window can close well before the newest observation: a reported value comes
 // from the 3-hourly synoptic METAR, which nws.js's 5-hour fetch can trail by more than the
@@ -72,42 +86,67 @@ const describeVisibility = visibility => (visibility === 'unreported' ? visibili
 const describeProvenance = ({ now, tendency }) =>
     `tendency: ${tendency.provenance} (${describeWindowHours(tendency)}h), ended ${describeElapsed({ now, observedAt: tendency.observedAt })}`
 
-// SPECI reports omit sea-level pressure, and a SPECI can be the newest observation. The
-// trend still resolves because it comes from the series, not the newest record alone, so
-// it must render even when the absolute reading can't — never the literal string "undefined".
-const describePressure = ({ observation, tendency }) => {
-    const trend = describeTrend(tendency)
-    return observation.pressureHpa === undefined ? trend : `${observation.pressureHpa} hPa   ${trend}`
+const describeSource = direction => {
+    // Calm air and a measured wind whose station sent no wdir read alike: there is no heading
+    // to name. The plot says the same thing by laying its marks out with no shaft.
+    if (direction === undefined) return 'no direction'
+    // toWind names a VRB report 'variable', which is a state of the wind rather than a point on
+    // the compass: 'from variable' would read as a place.
+    if (direction === 'variable') return 'variable'
+    return `from ${direction}`
 }
 
-const buildPolygon = ({ document, points }) => {
-    const polygon = document.createElementNS(SVG_NAMESPACE, 'polygon')
-    polygon.setAttribute('points', points.map(({ x, y }) => `${x},${y}`).join(' '))
-    return polygon
+const describeWindDirection = ({ direction, gustKnots }) => {
+    const source = describeSource(direction)
+    return gustKnots === undefined ? source : `${source} · G ${gustKnots}`
 }
 
-// A wind nobody measured draws nothing: a sock at rest is what calm looks like, and flying one
-// for an absent reading would assert the measurement the value itself refuses to make. The empty
-// <svg> then collapses rather than holding a gap in the row — see .windsock:empty in ui.css.
-const renderWindsock = ({ document, wind }) => {
-    const sock = document.querySelector(SELECTORS.windsock)
+// The chip's two colours come from comfort.js beside the reading, so they are set inline: the
+// seven bands are a data table, and seven CSS classes would be a second copy of it to keep in
+// step with it. The label is capitalised in CSS rather than here.
+const renderComfort = ({ dewpointFahrenheit, document }) => {
+    const { background, foreground, label } = comfortBand(dewpointFahrenheit)
+    const chip = document.querySelector(SELECTORS.comfort)
+
+    chip.hidden = false
+    // Custom properties rather than `background` and `color` directly: a value written to a
+    // custom property is handed to CSS verbatim, so a light-dark() pair or any other function
+    // the parser does not recognise still lands. The wind plaque sets its colours the same way.
+    chip.style.setProperty('--chip-background', background)
+    chip.style.setProperty('--chip-foreground', foreground)
+    chip.textContent = label
+}
+
+// Calm and unreported each have to read as itself: calm air was measured and found still, an
+// unreported wind was not measured at all, and neither of them is "0 kt".
+const renderWind = ({ document, wind }) => {
     if (wind.state === 'unreported') {
-        sock.replaceChildren()
+        writeReading({ document, selector: SELECTORS.windSpeed, text: PLACEHOLDER })
+        write({ document, selector: SELECTORS.windDirection, text: 'unreported' })
         return
     }
 
-    const polygons = windsockPolygons({
-        gusting: wind.gustKnots !== undefined,
-        // Calm carries no speed, and a sock hanging dead down its mast is the honest drawing of it.
-        knots: wind.knots ?? 0,
-        origin: SOCK_ORIGIN,
-        scale: SOCK_SCALE,
-    })
-    sock.replaceChildren(...Object.values(polygons).map(points => buildPolygon({ document, points })))
+    // Calm carries no speed to put a unit on, and no direction either — so its line is
+    // describeWindDirection's own no-heading wording rather than a second literal to keep in step.
+    const speed = wind.state === 'calm' ? { text: 'calm' } : { text: String(wind.knots), unit: 'kt' }
+
+    writeReading({ document, selector: SELECTORS.windSpeed, ...speed })
+    write({ document, selector: SELECTORS.windDirection, text: describeWindDirection(wind) })
+}
+
+// SPECI reports omit sea-level pressure, and a SPECI can be the newest observation. The trend
+// still resolves because it comes from the series, not the newest record alone, so it must
+// render even when the absolute reading cannot — never the literal string "undefined".
+const renderPressure = ({ document, observation, tendency }) => {
+    const reading = observation.pressureHpa === undefined ? PLACEHOLDER : String(observation.pressureHpa)
+
+    writeReading({ document, selector: SELECTORS.pressure, text: reading })
+    write({ document, selector: SELECTORS.trend, text: describeTrend(tendency) })
 }
 
 const buildThunderBar = ({ document, hour, percent }) => {
     const bar = document.createElement('li')
+
     bar.className = 'thunder-bar'
     bar.style.setProperty('--percent', percent)
     bar.setAttribute('aria-label', `${HOUR_FORMAT.format(new Date(hour))} — ${percent}%`)
@@ -127,21 +166,21 @@ export const render = ({ document, model, now }) => {
 
     const { observation, tendency, thunder } = model
 
-    write({
-        document,
-        selector: SELECTORS.ambientPrimary,
-        text: `${observation.temperatureFahrenheit}F   ${describeVisibility(observation.visibility)}`,
-    })
-    write({ document, selector: SELECTORS.ambientClouds, text: describeCloudLayers(observation.cloudLayers) })
-    write({ document, selector: SELECTORS.dewpoint, text: `${observation.dewpointFahrenheit}F` })
-    write({ document, selector: SELECTORS.pressure, text: describePressure({ observation, tendency }) })
-    write({ document, selector: SELECTORS.wind, text: describeWind(observation.wind) })
-    renderWindsock({ document, wind: observation.wind })
-    write({ document, selector: SELECTORS.cloudBase, text: `Cloud base ~ ${observation.cloudBaseFeet} ft` })
+    write({ document, selector: SELECTORS.temperature, text: `${observation.temperatureFahrenheit}°` })
+    write({ document, selector: SELECTORS.clouds, text: describeCloudLayers(observation.cloudLayers) })
+    write({ document, selector: SELECTORS.visibility, text: describeVisibility(observation.visibility) })
+
+    writeReading({ document, selector: SELECTORS.dewpoint, text: `${observation.dewpointFahrenheit}°` })
+    renderComfort({ dewpointFahrenheit: observation.dewpointFahrenheit, document })
+
+    writeReading({ document, selector: SELECTORS.cloudBase, text: WHOLE_FEET_FORMAT.format(observation.cloudBaseFeet), unit: 'ft' })
+    renderWind({ document, wind: observation.wind })
+    renderPressure({ document, observation, tendency })
+
     write({
         document,
         selector: SELECTORS.age,
-        text: `${observation.stationName} - obs ${describeElapsed({ now, observedAt: observation.observedAt })}`,
+        text: `${observation.stationName} · obs ${describeElapsed({ now, observedAt: observation.observedAt })}`,
     })
     write({ document, selector: SELECTORS.provenance, text: describeProvenance({ now, tendency }) })
 
@@ -153,13 +192,20 @@ export const render = ({ document, model, now }) => {
 // successfully loaded data still sees why, rather than a blank popup. Shares SELECTORS with
 // render() above so the two can't drift — see the comment on SELECTORS for why that matters.
 export const renderUnavailable = ({ document, reason }) => {
-    write({ document, selector: SELECTORS.ambientPrimary, text: PLACEHOLDER })
-    write({ document, selector: SELECTORS.ambientClouds, text: '' })
-    write({ document, selector: SELECTORS.dewpoint, text: PLACEHOLDER })
-    write({ document, selector: SELECTORS.pressure, text: PLACEHOLDER })
-    write({ document, selector: SELECTORS.cloudBase, text: PLACEHOLDER })
-    write({ document, selector: SELECTORS.wind, text: PLACEHOLDER })
-    renderWindsock({ document, wind: { state: 'unreported' } })
+    write({ document, selector: SELECTORS.temperature, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.clouds, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.visibility, text: '' })
+
+    writeReading({ document, selector: SELECTORS.dewpoint, text: PLACEHOLDER })
+    // Hidden rather than emptied: an empty pill is a coloured gap under the reading, and the
+    // band it would name is exactly what is unknown here.
+    document.querySelector(SELECTORS.comfort).hidden = true
+
+    writeReading({ document, selector: SELECTORS.cloudBase, text: PLACEHOLDER })
+    renderWind({ document, wind: { state: 'unreported' } })
+    writeReading({ document, selector: SELECTORS.pressure, text: PLACEHOLDER })
+    write({ document, selector: SELECTORS.trend, text: PLACEHOLDER })
+
     write({ document, selector: SELECTORS.age, text: `no observation available — ${reason}` })
     write({ document, selector: SELECTORS.provenance, text: 'tendency: unavailable' })
     document.querySelector(SELECTORS.thunder).hidden = true

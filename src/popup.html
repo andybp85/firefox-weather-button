@@ -8,27 +8,53 @@
     </head>
     <body>
         <main class="popup">
-            <section id="ambient">
-                <p class="ambient-primary"></p>
-                <p class="ambient-clouds"></p>
-            </section>
-            <section class="detail">
-                <p class="dewpoint"><span class="label">Dewpoint</span> <span id="dewpoint"></span></p>
-                <p id="pressure"></p>
-                <p class="wind">
-                    <span class="label">Wind</span>
-                    <!-- popup.js fills this from the same geometry the toolbar button draws, so the
-                         panel is where the button's glyph can be read. -->
-                    <svg aria-hidden="true" class="windsock" viewBox="0 0 24 24"></svg>
-                    <span id="wind"></span>
-                </p>
-            </section>
-            <section class="secondary">
-                <p id="cloud-base"></p>
-                <div id="thunder">
-                    <p class="thunder-label" id="thunder-label">Thunder</p>
-                    <ol aria-labelledby="thunder-label" class="thunder-bars"></ol>
+            <header class="ambient">
+                <p class="temperature" id="temperature"></p>
+                <div class="ambient-lines">
+                    <p id="clouds"></p>
+                    <p id="visibility"></p>
                 </div>
+            </header>
+            <div class="plaques">
+                <section class="plaque plaque-dewpoint">
+                    <p class="label">Dewpoint</p>
+                    <p class="reading" id="dewpoint"></p>
+                    <p class="comfort"><span class="comfort-chip" id="comfort"></span></p>
+                </section>
+                <section class="plaque plaque-cloud">
+                    <!-- Each instrument's <svg> holds its fixed furniture and one empty <g>
+                         that popup.js replaces the children of. Splitting them that way means a
+                         redraw never has to rebuild the ring, the dial, or the ticks, and the
+                         furniture can be styled in CSS with Kit tokens rather than written in
+                         JS as literal hexes. Tasks 9 to 11 add the furniture to each. -->
+                    <svg aria-hidden="true" class="sky" viewBox="0 0 136 112"><g id="sky"></g></svg>
+                    <div class="plaque-text">
+                        <p class="label">Cloud base</p>
+                        <p class="reading" id="cloud-base"></p>
+                        <p class="note">computed</p>
+                    </div>
+                </section>
+                <section class="plaque plaque-wind">
+                    <p class="label">Wind</p>
+                    <!-- Station-model barbs on a compass ring, from wind-barbs.js. -->
+                    <svg aria-hidden="true" class="wind-plot" viewBox="0 0 88 88"><g id="wind-plot"></g></svg>
+                    <p class="reading" id="wind-speed"></p>
+                    <p class="note" id="wind-direction"></p>
+                </section>
+                <section class="plaque plaque-pressure">
+                    <p class="label">Pressure</p>
+                    <svg aria-hidden="true" class="barometer" viewBox="0 0 112 76"><g id="barometer"></g></svg>
+                    <p class="reading" id="pressure"></p>
+                    <p class="note trend">
+                        <svg aria-hidden="true" class="trend-glyph" viewBox="0 0 10 10"><g id="trend-glyph"></g></svg>
+                        <span id="trend"></span>
+                    </p>
+                </section>
+            </div>
+            <section class="thunder" id="thunder">
+                <p class="thunder-label" id="thunder-label">Thunder</p>
+                <ol aria-labelledby="thunder-label" class="thunder-bars"></ol>
+                <p class="thunder-axis"><span>now</span><span>+6h</span><span>+12h</span></p>
             </section>
             <footer class="footer">
                 <p id="age"></p>
