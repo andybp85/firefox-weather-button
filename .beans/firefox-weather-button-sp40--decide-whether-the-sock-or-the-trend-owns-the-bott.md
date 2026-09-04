@@ -1,11 +1,11 @@
 ---
 # firefox-weather-button-sp40
 title: Decide whether the sock or the trend owns the bottom band
-status: todo
+status: scrapped
 type: task
 priority: normal
 created_at: 2026-09-02T17:52:43Z
-updated_at: 2026-09-02T17:52:53Z
+updated_at: 2026-09-04T14:29:17Z
 blocked_by:
     - firefox-weather-button-4q55
 ---
@@ -21,3 +21,13 @@ A third option is that neither belongs in a corner and the wind layout should dr
 - [ ] Look at both layouts at 1x on a real toolbar
 - [ ] Decide: keep, swap, or drop the trend while windy
 - [ ] If it changes, update the byte-identical-icon test and the README's description of the two layouts
+
+## Reasons for Scrapping
+
+The question only exists inside the 0.3.0 layout, where a band and a corner mark
+compete for the bottom of the chip. That layout is being redrawn for 0.4.0, so
+deciding which of the two owns the band decides nothing.
+
+What is worth carrying forward is the finding, not the decision: a mark about
+4x2 device pixels at 16 px reads as present but not as directional. The 0.4.0
+design should treat that as a floor on any glyph it puts on the button.
