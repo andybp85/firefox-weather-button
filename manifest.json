@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Weather Button",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Dewpoint, barometric pressure trend, and thunder probability from the National Weather Service.",
     "browser_specific_settings": {
         "gecko": {
