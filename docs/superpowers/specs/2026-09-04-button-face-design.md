@@ -1,7 +1,7 @@
 # The 0.4.0 button face — Design
 
 - **Date:** 2026-09-04
-- **Status:** Draft for review; the implementation plan follows approval
+- **Status:** Approved 2026-09-04; plan at `docs/superpowers/plans/2026-09-04-button-face.md`
 - **Version target:** 0.4.0
 - **Bean:** firefox-weather-button-xdex
 - **Brief:** `docs/superpowers/briefs/2026-09-04-button-face-design-brief.md`

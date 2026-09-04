@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: high
 created_at: 2026-09-04T14:30:26Z
-updated_at: 2026-09-04T23:17:37Z
+updated_at: 2026-09-04T23:35:05Z
 ---
 
 The 0.3.0 button — a comfort band along the foot of an indigo chip, a pressure-trend notch cut out of that band, dewpoint figures on the face, and a compass dart replacing those figures when the wind is worth announcing — is not working. That judgement is the user's, made after living with the shipped surface; the specific complaints are still to be captured.
@@ -30,5 +30,5 @@ redesign rather than bolting it onto a face that is being replaced.
 - [x] Mock the face up in Claude Design — brief at `docs/superpowers/briefs/2026-09-04-button-face-design-brief.md`, canvas at <https://claude.ai/code/artifact/1e24765d-341b-4f3a-9a82-5d50621f4573>, generator at `docs/superpowers/design/2026-09-04-button-face/build.mjs` (2026-09-04)
 - [x] Pick the bearing mark from the canvas. Picked: C, the bead on the ring, with the canvas defaults (2026-09-04). A was recommended; D (crescent) failed the compass sweep; C sits at the 2 px floor and the toolbar pass must confirm it
 - [x] Brainstorm the replacement (superpowers:brainstorming). mhtm scrapped: the face has no room (2026-09-04)
-- [ ] Write the spec, then the implementation plan
+- [x] Write the spec, then the implementation plan: docs/superpowers/specs/2026-09-04-button-face-design.md, docs/superpowers/plans/2026-09-04-button-face.md (2026-09-04)
 - [ ] Verify at 16 px on a real toolbar through `setIcon`, both themes, before it is called done
