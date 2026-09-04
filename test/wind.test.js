@@ -99,6 +99,12 @@ test('announcedKnots keeps the sustained speed for a gust exactly at the margin'
     assert.equal(announcedKnots({ gustKnots: 65, knots: 55 }), 55)
 })
 
+test('announcedKnots takes the gust one knot past the margin', () => {
+    // The knot either side of the margin is what pins it: with only +10 and a wider case above,
+    // the constant is free to sit anywhere in between and paint a gust three Beaufort bands low.
+    assert.equal(announcedKnots({ gustKnots: 29, knots: 18 }), 29)
+})
+
 test('announcedKnots takes the gust when it is more than 10 kt over the sustained wind', () => {
     assert.equal(announcedKnots({ gustKnots: 32, knots: 18 }), 32)
 })

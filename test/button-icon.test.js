@@ -21,6 +21,7 @@ const recordingContext = () => {
             call,
             fillStyle: context.fillStyle,
             font: context.font,
+            lineJoin: context.lineJoin,
             lineWidth: context.lineWidth,
             strokeStyle: context.strokeStyle,
             ...fields,
@@ -139,6 +140,27 @@ test('drawButtonIcon gives the face to the dart once the wind is notable', () =>
             [14.63, 32.96],
         ],
     )
+})
+
+test('drawButtonIcon draws the dart for a wind out of due north', () => {
+    // A bearing of 0 is a heading the station reported, not a missing one. The guard reads
+    // `=== undefined` for exactly this: a truthiness test hands due north the directionless
+    // ring and throws away a heading the observation carries.
+    const calls = draw({ wind: { bearingDegrees: 0, direction: 'N', knots: 20, state: 'measured' } })
+    const [tip] = paths(calls)[1]
+
+    assert.equal(only({ calls, name: 'arc' }).length, 0)
+    // A north wind blows south, so the tip sits below the plot centre.
+    assert.deepEqual(tip, [32, 41])
+})
+
+test('drawButtonIcon strokes the dart at width 2 with round joins', () => {
+    // The round joins take the corners off the vertices; without them the dart reads as a paper
+    // aeroplane at 16 pixels, and a stroke several times wider closes the notch into a blob.
+    const [dart] = only({ calls: draw({ wind: SSW_15 }), name: 'stroke' })
+
+    assert.equal(dart.lineJoin, 'round')
+    assert.equal(dart.lineWidth, 2)
 })
 
 test('drawButtonIcon keeps the band and the trend when the dart takes the face', () => {
