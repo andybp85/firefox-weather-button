@@ -1,11 +1,11 @@
 ---
 # firefox-weather-button-mhtm
 title: Highlight the dominant weather phenomenon on the button
-status: draft
+status: scrapped
 type: feature
 priority: normal
 created_at: 2026-09-02T17:52:25Z
-updated_at: 2026-09-02T17:52:25Z
+updated_at: 2026-09-04T23:17:37Z
 ---
 
 The button says what the air feels like (dewpoint, comfort colour), which way the pressure is going, and how hard the wind is blowing. It says nothing about what is actually falling out of the sky.
@@ -33,3 +33,12 @@ Adjacent to the SPC categorical outlook bean, which is severe-weather forecast r
 - [ ] Decide what it displaces on the icon, and at what threshold it earns the room
 - [ ] Decide whether it is observed, forecast, or both
 - [ ] Check whether it survives 16 device pixels before designing around it
+
+## Reasons for Scrapping
+
+Settled inside the 0.4.0 button redesign (firefox-weather-button-xdex) on 2026-09-04. The new face is a
+temperature figure on a dewpoint-comfort disc, ringed in Beaufort colour, and its brief makes that a
+non-negotiable: nothing on the face but the disc, the ring, and up to three characters. There is no room
+for a fourth element at 16 device pixels, and a phenomenon colour would be a third colour system on a face
+that allows two. The popup already reports present weather. If the idea returns, it returns against the
+tooltip or the popup, not the button face.
