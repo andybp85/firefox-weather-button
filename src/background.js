@@ -13,14 +13,14 @@ const REFRESH_ALARM = 'refresh-button'
 // same cached series, and METARs are issued hourly anyway.
 const REFRESH_MINUTES = 10
 
-const rasterise = ({ dewpointFahrenheit, direction, size, wind }) => {
+const rasterise = ({ dewpointFahrenheit, size, temperatureFahrenheit, wind }) => {
     const context = new OffscreenCanvas(size, size).getContext('2d')
-    drawButtonIcon({ context, dewpointFahrenheit, direction, size, wind })
+    drawButtonIcon({ context, dewpointFahrenheit, size, temperatureFahrenheit, wind })
     return context.getImageData(0, 0, size, size)
 }
 
-const paintIcon = ({ dewpointFahrenheit, direction, wind }) =>
-    Object.fromEntries(ICON_SIZES.map(size => [size, rasterise({ dewpointFahrenheit, direction, size, wind })]))
+const paintIcon = ({ dewpointFahrenheit, temperatureFahrenheit, wind }) =>
+    Object.fromEntries(ICON_SIZES.map(size => [size, rasterise({ dewpointFahrenheit, size, temperatureFahrenheit, wind })]))
 
 const refresh = async () => {
     const cache = createCache({ now: Date.now, storage: browser.storage.local })
