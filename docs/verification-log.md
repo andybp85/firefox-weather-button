@@ -174,13 +174,36 @@ plaque plots were rendered under jsdom and their emitted coordinates were read b
 rasters were derived from `button-icon.js` rather than looked at. `docs/icon-preview.html` draws
 the button's cases, but it needs a browser, and nobody has run it.
 
-Two things need a real profile before you trust them:
+One thing still needs a real profile before you trust it:
 
-- The dart at 16 device pixels on an actual toolbar. It is about 8 px long and 6 px wide there.
-  Bean `firefox-weather-button-4q55` tracks this check, and `firefox-weather-button-sp40` (the
-  bottom-band decision) is blocked on it.
 - The panel in Firefox's own popup chrome, at 304 px wide, in both colour schemes.
+
+The other item this entry first listed, the compass dart at 16 device pixels, is moot: the 0.4.0
+face retired the dart for a bead on the ring, and beans `firefox-weather-button-4q55` and
+`firefox-weather-button-sp40` were scrapped with it. The bead's own pass is the next entry.
 
 One contrast exception ships with this work, and it is a known one. Force 12's dark colour sits
 at 4.15:1 on `--tile`, under the 4.5:1 that AA asks for the gust text at 11 px. `src/beaufort.js`
 records why. No session has seen that case rendered.
+
+## 0.4.0 button face — 2026-09-05
+
+Driven through `browser.action.setIcon` from the background page's console with the snippet in
+`docs/superpowers/plans/2026-09-04-button-face.md`, Task 6. Loaded as a temporary add-on from
+`about:debugging`. Firefox Developer Edition 156.0, Kit theme, on a MacBook's built-in display
+(2×). No 1× display and no default-theme cycle were available in this pass.
+
+| Case                       | 1×          | 2×   | Notes |
+| -------------------------- | ----------- | ---- | ----- |
+| Compass sweep, 16 points   | not checked | pass |       |
+| Calm beside force 1        | not checked | pass |       |
+| Variable beside force 10   | not checked | pass |       |
+| Unreported                 | not checked | pass |       |
+| `-3` and `104`             | not checked | pass |       |
+| Sticky disc, force 7 ring  | not checked | pass |       |
+
+Verdict: the bead reads. The maintainer reported every case clean with no notes; recorded from
+that report, no screenshot captured. The live reading was also seen painting correctly before the
+sweep ran. The sweep fallback the spec names is not needed.
+
+Open: the same six cases at 1× and in the default theme, whenever a session has that display.

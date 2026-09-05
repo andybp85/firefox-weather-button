@@ -173,9 +173,9 @@ The extension has been loaded in a real Firefox Developer Edition profile: the p
 the toolbar icon rasters, paints, and refreshes on its alarm. Manual checks are recorded in
 [`docs/verification-log.md`](docs/verification-log.md).
 
-That check predates the plaque panel and the 0.4.0 button face. The face is the surface to look
-at first: its bead is about two device pixels at 16 px, and the local preview page is not a
-toolbar. The pass is recorded in the verification log once it has been made.
+The 0.4.0 button face has been seen through `setIcon` on a real toolbar, in the Kit theme on a 2×
+display; the pass is in the log. The same cases at 1× and in the default theme, and the plaque
+panel in Firefox's own popup chrome, have not had that pass.
 
 The automated checks stop short of Gecko. `npm run lint` (`web-ext lint`) reports no errors and no
 warnings. The test suite runs the popup's rendering code against a simulated DOM (jsdom), and makes
