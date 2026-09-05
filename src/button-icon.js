@@ -110,6 +110,7 @@ const drawWind = ({ context, unit, wind }) => {
     const colour = windColour(wind)
     if (wind.state === 'calm') return drawRing({ colour, context, stroke: FACE_GEOMETRY.light, unit })
     if (wind.bearingDegrees === undefined) return drawRing({ colour, context, stroke: FACE_GEOMETRY.heavy, unit })
+    if (wind.state !== 'measured') throw new Error(`cannot draw an unknown wind state: ${wind.state}`)
 
     drawRing({ colour, context, stroke: FACE_GEOMETRY.light, unit })
     drawBead({ bearingDegrees: wind.bearingDegrees, colour, context, unit })

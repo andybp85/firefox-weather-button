@@ -1,5 +1,5 @@
-import { drawButtonIcon } from '../src/button-icon.js'
-import { describeWind, toWind } from '../src/wind.js'
+import { drawButtonIcon } from '/src/button-icon.js'
+import { describeWind, toWind } from '/src/wind.js'
 
 // Sizes Firefox actually asks the button for, drawn at true device resolution. The 16 is the
 // case worth looking at: everything the geometry gets wrong, it gets wrong there first.

@@ -26,7 +26,7 @@ const recordingContext = () => {
             ...fields,
         })
     const context = {
-        arc: (x, y, radius) => record('arc', { radius, x, y }),
+        arc: (x, y, radius, startAngle, endAngle) => record('arc', { endAngle, radius, startAngle, x, y }),
         beginPath: () => record('beginPath'),
         clearRect: (x, y, width, height) => record('clearRect', { height, width, x, y }),
         fill: () => record('fill'),
@@ -66,8 +66,8 @@ test('drawButtonIcon lays the chip in the toolbar field indigo and nothing else 
 
     assert.equal(chips.length, 1)
     assert.deepEqual(
-        { height: chips[0].height, radius: chips[0].radius, width: chips[0].width },
-        { height: SIZE, radius: 9.6, width: SIZE },
+        { height: chips[0].height, radius: chips[0].radius, width: chips[0].width, x: chips[0].x, y: chips[0].y },
+        { height: SIZE, radius: 9.6, width: SIZE, x: 0, y: 0 },
     )
     assert.equal(chips[0].fillStyle, CHIP_INK)
 })
@@ -120,7 +120,10 @@ test('drawButtonIcon rings a calm reading lightly in the force 0 colour, with no
     const [, ring] = arcs(calls)
 
     assert.equal(arcs(calls).length, 2)
-    assert.deepEqual({ radius: ring.radius, x: ring.x, y: ring.y }, { radius: 27, x: 32, y: 32 })
+    assert.deepEqual(
+        { endAngle: ring.endAngle, radius: ring.radius, startAngle: ring.startAngle, x: ring.x, y: ring.y },
+        { endAngle: 2 * Math.PI, radius: 27, startAngle: 0, x: 32, y: 32 },
+    )
     assert.equal(ring.strokeStyle, '#129bf7')
     assert.equal(ring.lineWidth, 2.5)
     assert.equal(ring.lineCap, 'butt')
@@ -180,4 +183,12 @@ test('drawButtonIcon scales the whole face, so 16 and 32 are one drawing at two 
     assert.equal(chip.radius, 2.4)
     assert.deepEqual([disc.radius, ring.radius, bead.radius], [5.25, 6.75, 1.125])
     assert.equal(ring.lineWidth, 0.625)
+})
+
+test('drawButtonIcon throws on a wind state none of the three known branches handle', () => {
+    // Restores the symmetry drawTrend used to have: every state is named, and an unrecognised one
+    // throws instead of falling through into the measured branch and dying inside windColour.
+    const bogus = { bearingDegrees: 90, knots: 10, state: 'bogus' }
+
+    assert.throws(() => draw({ wind: bogus }), { message: 'cannot draw an unknown wind state: bogus' })
 })
