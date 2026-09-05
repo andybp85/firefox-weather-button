@@ -17,8 +17,8 @@ const rootRadii = marks => marks.map(({ points: [root] }) => radiusOf(root))
 const lengthOf = ({ points: [root, tip] }) => round(Math.hypot(tip.x - root.x, tip.y - root.y))
 
 test('windBarbs points the shaft at where the wind comes from, not where it is going', () => {
-    // The station model's own convention, and the opposite of the button's dart. A wind from
-    // the north puts the shaft above the station.
+    // The station model's own convention, which the toolbar button's bead now shares too. A wind
+    // from the north puts the shaft above the station.
     const { shaft } = windBarbs({ bearingDegrees: 0, knots: 10 })
 
     assert.deepEqual(pair(shaft.from), [44, 40.4])

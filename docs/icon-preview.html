@@ -80,15 +80,19 @@
         <main class="page">
             <h1>Toolbar icon preview</h1>
             <p class="lede">
-                Every case the toolbar button draws, rasterised by this browser at the sizes Firefox asks for. The icon is drawn by
-                <code>src/button-icon.js</code> itself, so what you see here is what ships.
+                Every case the toolbar button draws, rasterised by this browser at the sizes Firefox asks for: the temperature on a disc in
+                the dewpoint's comfort colour, ringed by the wind in its Beaufort colour with a bead where the wind comes from. The icon is
+                drawn by <code>src/button-icon.js</code> itself, so what you see here is what ships.
             </p>
             <p class="scale-note" id="scale-note"></p>
             <div class="rasters">
                 <table>
                     <caption>
                         The first three columns are true device pixels — hold your eye to them, not to the blow-ups. The last two magnify
-                        the same rasters so the geometry can be read.
+                        the same rasters so the geometry can be read. This page is a browser canvas, not a toolbar: the real check is the
+                        same cases through
+                        <code>setIcon</code>
+                        in a Firefox profile.
                     </caption>
                     <thead>
                         <tr>

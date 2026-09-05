@@ -37,8 +37,8 @@ export const toViewModel = observation => {
         // is manufactured here, not received. popup.js's describeVisibility matches on this
         // exact string to drop the "mi" unit — flagged on both sides because nothing enforces it.
         visibility: visib === undefined ? 'unreported' : String(visib),
-        // The wind is a value rather than a sentence: the button needs the figures to decide
-        // whether the wind has earned its bottom band, and wind.js's describeWind owns the wording.
+        // The wind is a value rather than a sentence: the button colours its ring by the figures,
+        // and wind.js's describeWind owns the wording.
         wind: toWind(observation),
     }
 }

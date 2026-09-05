@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: high
 created_at: 2026-09-04T14:30:26Z
-updated_at: 2026-09-04T23:35:05Z
+updated_at: 2026-09-05T12:32:17Z
 ---
 
 The 0.3.0 button — a comfort band along the foot of an indigo chip, a pressure-trend notch cut out of that band, dewpoint figures on the face, and a compass dart replacing those figures when the wind is worth announcing — is not working. That judgement is the user's, made after living with the shipped surface; the specific complaints are still to be captured.
@@ -32,3 +32,7 @@ redesign rather than bolting it onto a face that is being replaced.
 - [x] Brainstorm the replacement (superpowers:brainstorming). mhtm scrapped: the face has no room (2026-09-04)
 - [x] Write the spec, then the implementation plan: docs/superpowers/specs/2026-09-04-button-face-design.md, docs/superpowers/plans/2026-09-04-button-face.md (2026-09-04)
 - [ ] Verify at 16 px on a real toolbar through `setIcon`, both themes, before it is called done
+
+## Progress 2026-09-05
+
+Tasks 1–5 of docs/superpowers/plans/2026-09-04-button-face.md landed on branch button-face and merged to main (--no-ff). Final review clean bar one parked minor: drawWind's unknown-state guard sits after the bearing-undefined branch, so a bogus state with no bearing draws a heavy ring instead of throwing. Tasks 6 (real-toolbar check) and 7 (release) remain.

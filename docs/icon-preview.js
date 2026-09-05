@@ -14,52 +14,70 @@ const MAGNIFIED = [
 
 // One row per case, each written as the METAR fields the station sends rather than as a decoded
 // wind, so the page exercises toWind() on the way in and reads the same wording the popup does.
-// The set covers both sides of the 15 kt threshold that hands the face to the dart, both sides
-// of the 10 kt gust margin that decides the dart's colour, the directionless ring, all three
-// trend glyphs, and the readings that run to three characters and shrink the type.
+// The set is the design brief's: the three no-heading states, both sides of the 10 kt gust margin,
+// force 1 beside force 10, the readings that run to three characters, and the two comfort-ring
+// pairings whose colours sit closest.
 const CASES = [
-    { dewpointFahrenheit: 48, direction: 'steady', metar: {}, note: 'Nothing measured — numerals and the band' },
-    { dewpointFahrenheit: 53, direction: 'rising', metar: { wdir: 210, wspd: 0 }, note: 'Calm air, measured and still' },
-    { dewpointFahrenheit: 58, direction: 'falling', metar: { wdir: 40, wspd: 14 }, note: 'One knot under the threshold' },
-    { dewpointFahrenheit: 58, direction: 'falling', metar: { wdir: 40, wspd: 15 }, note: 'At the threshold — the dart takes the face' },
-    { dewpointFahrenheit: 63, direction: 'steady', metar: { wdir: 202.5, wspd: 15 }, note: 'SSW 15, force 4' },
+    { dewpointFahrenheit: 48, metar: {}, note: 'Nothing measured: disc and figures, no ring', temperatureFahrenheit: 55 },
+    {
+        dewpointFahrenheit: 53,
+        metar: { wdir: 210, wspd: 0 },
+        note: 'Calm: a light ring in the force 0 blue, no bead',
+        temperatureFahrenheit: 61,
+    },
+    { dewpointFahrenheit: 58, metar: { wdir: 40, wspd: 14 }, note: 'An ordinary wind, force 4', temperatureFahrenheit: 66 },
+    { dewpointFahrenheit: 63, metar: { wdir: 202.5, wspd: 15 }, note: 'SSW, force 4: the bead sits lower left', temperatureFahrenheit: 71 },
     {
         dewpointFahrenheit: 63,
-        direction: 'rising',
         metar: { wdir: 292.5, wgst: 31, wspd: 22 },
-        note: 'Gust 9 over — sustained keeps the colour',
+        note: 'Gust 9 over: the sustained wind keeps the colour',
+        temperatureFahrenheit: 74,
     },
     {
         dewpointFahrenheit: 68,
-        direction: 'falling',
         metar: { wdir: 270, wgst: 32, wspd: 18 },
-        note: 'Gust 14 over — the gust takes the colour',
+        note: 'Gust 14 over: the gust takes the colour',
+        temperatureFahrenheit: 79,
     },
     {
         dewpointFahrenheit: 73,
-        direction: 'steady',
         metar: { wdir: 180, wgst: 65, wspd: 55 },
-        note: 'Gust exactly 10 over — still sustained',
+        note: 'Gust exactly 10 over: still the sustained wind, force 10',
+        temperatureFahrenheit: 84,
     },
     {
         dewpointFahrenheit: 78,
-        direction: 'rising',
         metar: { wdir: 'VRB', wgst: 21, wspd: 6 },
-        note: 'A gust promotes a wind with no heading',
+        note: 'Variable: a heavy ring, no bead',
+        temperatureFahrenheit: 86,
     },
-    { dewpointFahrenheit: -4, direction: 'falling', metar: { wdir: 20, wspd: 8 }, note: 'Subfreezing, two characters' },
-    { dewpointFahrenheit: -12, direction: 'rising', metar: {}, note: 'Three characters shrink the type' },
-    { dewpointFahrenheit: 100, direction: 'steady', metar: { wdir: 160, wspd: 4 }, note: 'Three characters, no minus' },
+    { dewpointFahrenheit: -4, metar: { wdir: 20, wspd: 8 }, note: 'Subfreezing, two characters', temperatureFahrenheit: 10 },
+    { dewpointFahrenheit: -12, metar: {}, note: 'Three characters shrink the type', temperatureFahrenheit: -3 },
+    { dewpointFahrenheit: 100, metar: { wdir: 160, wspd: 4 }, note: 'Three characters, no minus', temperatureFahrenheit: 104 },
+    { dewpointFahrenheit: 60, metar: { wdir: 40, wspd: 3 }, note: 'Force 1: quiet enough not to nag', temperatureFahrenheit: 72 },
+    { dewpointFahrenheit: 60, metar: { wdir: 40, wspd: 50 }, note: 'Force 10, beside force 1', temperatureFahrenheit: 72 },
+    {
+        dewpointFahrenheit: 63,
+        metar: { wdir: 40, wspd: 30 },
+        note: 'Weak pairing: a sticky disc inside a force 7 ring',
+        temperatureFahrenheit: 72,
+    },
+    {
+        dewpointFahrenheit: 73,
+        metar: { wdir: 40, wspd: 70 },
+        note: 'An oppressive disc inside a hurricane ring',
+        temperatureFahrenheit: 88,
+    },
 ]
 
-// The sixteen compass points at one speed. The dart's sense is the one thing about this mark a
-// reader can get backwards, so it gets a sweep to check against: a wind from the north points
-// down the face, because the dart flies downwind.
+// The sixteen compass points at one speed. The bead's sense is the one thing about this mark a
+// reader can get backwards, so it gets a sweep to check against: the bead sits upwind, so a wind
+// from the north puts it at the top of the face. No two neighbours may look alike at 16 px.
 const COMPASS_CASES = [...Array(16).keys()].map(step => ({
     dewpointFahrenheit: 60,
-    direction: 'steady',
     metar: { wdir: step * 22.5, wspd: 20 },
     note: 'Compass sweep',
+    temperatureFahrenheit: 72,
 }))
 
 // A canvas is only honest about a 16-device-pixel icon when one backing pixel lands on one
@@ -74,8 +92,8 @@ const paint = ({ example, size }) => {
     drawButtonIcon({
         context: canvas.getContext('2d'),
         dewpointFahrenheit: example.dewpointFahrenheit,
-        direction: example.direction,
         size,
+        temperatureFahrenheit: example.temperatureFahrenheit,
         wind: example.wind,
     })
     return canvas
@@ -125,9 +143,15 @@ const row = example => {
     return tr
 }
 
-const toExample = ({ dewpointFahrenheit, direction, metar, note }) => {
+const toExample = ({ dewpointFahrenheit, metar, note, temperatureFahrenheit }) => {
     const wind = toWind(metar)
-    return { dewpointFahrenheit, direction, label: `${dewpointFahrenheit}F ${direction} ${describeWind(wind)}`, note, wind }
+    return {
+        dewpointFahrenheit,
+        label: `${temperatureFahrenheit}F, dewpoint ${dewpointFahrenheit}F, wind ${describeWind(wind)}`,
+        note,
+        temperatureFahrenheit,
+        wind,
+    }
 }
 
 const examples = [...CASES, ...COMPASS_CASES].map(toExample)

@@ -9,15 +9,17 @@ import { describeWind } from './wind.js'
 const DEFAULT_ICON_PATH = { 48: 'icons/icon.svg' }
 
 const describeButton = ({ observation, tendency }) => {
-    const { dewpointFahrenheit, stationName, wind } = observation
+    const { dewpointFahrenheit, stationName, temperatureFahrenheit, wind } = observation
     const { label } = comfortBand(dewpointFahrenheit)
 
     return {
         dewpointFahrenheit,
-        direction: tendency.direction,
-        // The tooltip carries the wind in words on every path, including the ones where the icon
-        // does not draw it: a light wind is still a reading, it has simply not earned the band.
-        title: `${stationName} — ${dewpointFahrenheit}F dewpoint (${label}), pressure ${tendency.direction}, wind ${describeWind(wind)}`,
+        temperatureFahrenheit,
+        // The tooltip carries every reading the face draws and the one it dropped: the pressure
+        // trend was unreadable at 16 px, and this line and the popup are where it lives now.
+        title:
+            `${stationName} — ${temperatureFahrenheit}F, dewpoint ${dewpointFahrenheit}F (${label}), ` +
+            `pressure ${tendency.direction}, wind ${describeWind(wind)}`,
         wind,
     }
 }
@@ -27,18 +29,17 @@ const showUnavailable = async ({ action, reason }) => {
     await action.setTitle({ title: `Weather detail — no reading (${reason})` })
 }
 
-// Paints the toolbar button from the current observation: the dewpoint in figures, the comfort
-// band along the chip's foot, the 3-hour pressure trend cut into it, and the wind as a compass
-// dart in place of the figures once it is blowing hard enough (see wind.js's isNotable).
-// paintIcon is injected because it needs a canvas, which is the one part of this that the
-// test environment has no implementation of; everything above it is ordinary data.
+// Paints the toolbar button from the current observation: the temperature in figures on a disc
+// in the dewpoint's comfort colour, ringed by the wind in its Beaufort colour with a bead on the
+// upwind side. paintIcon is injected because it needs a canvas, which is the one part of this
+// that the test environment has no implementation of; everything above it is ordinary data.
 export const updateButton = async ({ action, cache, client, now, paintIcon, stationId }) => {
     if (stationId === undefined) return showUnavailable({ action, reason: 'no station configured yet' })
 
     try {
         const model = await resolveModel({ cache, client, now, stationId })
-        const { dewpointFahrenheit, direction, title, wind } = describeButton(model)
-        await action.setIcon({ imageData: paintIcon({ dewpointFahrenheit, direction, wind }) })
+        const { dewpointFahrenheit, temperatureFahrenheit, title, wind } = describeButton(model)
+        await action.setIcon({ imageData: paintIcon({ dewpointFahrenheit, temperatureFahrenheit, wind }) })
         await action.setTitle({ title })
     } catch (error) {
         // resolveModel already falls back to the last good cached series, so reaching here

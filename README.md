@@ -1,34 +1,32 @@
 # Firefox Weather Button
 
-A Firefox toolbar button that shows the current dewpoint over a band for how it feels, and
-opens a popup with local weather detail.
+A Firefox toolbar button that shows the current temperature on a disc coloured for how the
+dewpoint feels, ringed by the wind, and opens a popup with local weather detail.
 
 ## The toolbar button
 
-The button icon is drawn, not fixed. It is a rounded chip in the toolbar's own indigo. The
-chip shows:
+The button icon is drawn, not fixed. It is a rounded chip in the toolbar's own indigo. On the chip:
 
-- A band along the foot of the chip, in the colour of the comfort band that the dewpoint falls
-  in (see the table below).
-- The 3-hour barometric pressure trend, cut out of that band in the chip's own indigo: an up
-  arrow for a rise, a down arrow for a fall, and a dash for steady.
-- The dewpoint in whole degrees Fahrenheit, on the face above the band.
+- A disc, filled with the colour of the comfort band that the dewpoint falls in (see the table
+  below).
+- The temperature in whole degrees Fahrenheit, on the disc, in black or white as the band reads
+  best.
+- A ring around the disc, in the Beaufort colour of the wind, with a bead on the ring where the
+  wind comes from. A wind from the north puts the bead at the top of the face.
 
-A wind is worth announcing when it gusts, or when it is sustained at 15 kt or more. Such a wind
-takes the face: the figures give way to a wind mark. The band and the trend stay where they are,
-on every path.
+The ring takes the force of the gust when the gust is more than 10 kt above the sustained wind.
+In every other case it takes the force of the sustained wind. The face does not say which; the
+tooltip and the popup do.
 
-The mark is a compass dart. It flies downwind, which is the map convention: a wind from the
-north points down the face. Its colour is the Beaufort force of the wind. The dart takes the
-force of the gust when the gust is more than 10 kt above the sustained wind. In every other case
-it takes the force of the sustained wind.
+Three winds have no bearing to mark. Calm air draws a thin ring in the force 0 colour and no
+bead. A wind the station reports as variable draws a thick ring in its force colour and no bead.
+When nobody measured the wind, there is no ring at all.
 
-Some stations report a speed with no bearing. The button then draws a ring in the force colour
-in place of the dart. The ring reports the speed and claims no heading.
+The 3-hour barometric pressure trend is not on the face. It was too small to read there. The
+tooltip and the popup both carry it.
 
-Point at the button to read the same values as text, with the station name, the comfort band,
-and the wind written out. The tooltip names the wind at any speed, including one too light to
-have earned room on the icon.
+Point at the button to read the same values as text: the station name, the temperature, the
+dewpoint and its comfort band, the pressure trend, and the wind written out.
 
 The button refreshes every 10 minutes, and again as soon as you save a different station. It
 shares its cache with the popup, so the two together make one set of requests, not two.
@@ -148,12 +146,12 @@ against Firefox's add-on rules.
 ### Preview the toolbar icon
 
 [`docs/icon-preview.html`](docs/icon-preview.html) draws every case the button icon has, at the
-sizes Firefox asks for. The cases cover both sides of the 15 kt wind threshold, both sides of the
-10 kt gust margin, the ring for a wind with no bearing, all three trend glyphs, and the readings
-that run to three characters. A sweep of all sixteen compass points follows them, so the dart's
-sense can be read off the page rather than derived. The page imports `src/button-icon.js` and
-decodes its winds through `src/wind.js`, so it rasterises the shipping code rather than a copy
-of it.
+sizes Firefox asks for. The cases cover calm, variable, and unreported wind, both sides of the
+10 kt gust margin, force 1 beside force 10, the readings that run to three characters, and the two
+comfort-and-ring pairings whose colours sit closest. A sweep of all sixteen compass points follows
+them, so the bead's sense can be read off the page rather than derived. The page imports
+`src/button-icon.js` and decodes its winds through `src/wind.js`, so it rasterises the shipping
+code rather than a copy of it.
 
 ES modules need an HTTP origin, so serve the repository root instead of opening the file:
 
@@ -174,9 +172,9 @@ The extension has been loaded in a real Firefox Developer Edition profile: the p
 the toolbar icon rasters, paints, and refreshes on its alarm. Manual checks are recorded in
 [`docs/verification-log.md`](docs/verification-log.md).
 
-That check predates the plaque panel and the compass-dart button. Neither surface has been seen
-in a real profile yet. The dart at 16 device pixels is the case to look at first: it is about 8
-pixels long there, and the local preview page is not a toolbar.
+That check predates the plaque panel and the 0.4.0 button face. The face is the surface to look
+at first: its bead is about two device pixels at 16 px, and the local preview page is not a
+toolbar. The pass is recorded in the verification log once it has been made.
 
 The automated checks stop short of Gecko. `npm run lint` (`web-ext lint`) reports no errors and no
 warnings. The test suite runs the popup's rendering code against a simulated DOM (jsdom), and makes

@@ -1,14 +1,17 @@
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
+
+const fixture = name => JSON.parse(readFileSync(new URL(`./fixtures/${name}.json`, import.meta.url)))
 
 // The background page is the extension's other entry point, and like popup-main.js it does its
 // work on import against globals Firefox supplies. Each case gets its own module instance via a
 // distinct import specifier so the run, and the listeners it registers, see that case's fakes.
 //
-// No case configures a station. That keeps every path in this file clear of paintIcon, which
-// needs an OffscreenCanvas that Node has no implementation of; the drawing is button-icon.js's
-// subject and the reading is button.js's, leaving the wiring itself as this file's.
+// Only the last case configures a station, through a fake OffscreenCanvas: that is the one path
+// this file has to prove, since the drawing itself is button-icon.js's subject and the reading is
+// button.js's, leaving the wiring from the reading to the raster as this file's.
 // The listeners are fire-and-forget: Firefox does not await them, so neither do they return a
 // handle. Draining the microtask queue is what lets a test see the refresh they started.
 const settle = () => new Promise(resolve => setImmediate(resolve))
@@ -18,7 +21,34 @@ const listenerSlot = () => {
     return { addListener: listener => listeners.push(listener), listeners }
 }
 
-const runBackground = async () => {
+// Node has no OffscreenCanvas. This one records the text each size was asked to draw and hands
+// back a token in place of the raster; the drawing itself is button-icon.test.js's subject.
+const fakeOffscreenCanvas = () => {
+    const texts = []
+    globalThis.OffscreenCanvas = class {
+        constructor(width, height) {
+            this.height = height
+            this.width = width
+        }
+        getContext() {
+            const size = this.width
+            const ignore = () => {}
+            return {
+                arc: ignore,
+                beginPath: ignore,
+                clearRect: ignore,
+                fill: ignore,
+                fillText: text => texts.push({ size, text }),
+                getImageData: () => `raster-${size}`,
+                roundRect: ignore,
+                stroke: ignore,
+            }
+        }
+    }
+    return texts
+}
+
+const runBackground = async ({ records = {} } = {}) => {
     const alarms = { created: [], onAlarm: listenerSlot() }
     alarms.create = (name, options) => alarms.created.push({ name, ...options })
 
@@ -26,7 +56,11 @@ const runBackground = async () => {
     action.setIcon = async icon => action.icons.push(icon)
     action.setTitle = async ({ title }) => action.titles.push(title)
 
-    const storage = { get: async () => ({}), onChanged: listenerSlot(), set: async () => {} }
+    const storage = {
+        get: async key => (key in records ? { [key]: records[key] } : {}),
+        onChanged: listenerSlot(),
+        set: async () => {},
+    }
 
     globalThis.browser = {
         action,
@@ -87,4 +121,23 @@ test('a saved station refreshes the button, and the cache it writes does not', a
     onChanged({ station: { newValue: { stationId: 'KEWR' } } })
     await settle()
     assert.equal(action.titles.length, paints + 1)
+})
+
+test('a configured station rasters the temperature at both toolbar sizes', async () => {
+    // KEWR's newest fixture record is 23.3 °C, which rounds to 74 °F. Both sizes are painted from
+    // one call, because Firefox picks whichever is nearest the toolbar's device pixel ratio.
+    const texts = fakeOffscreenCanvas()
+    const { action } = await runBackground({
+        records: {
+            'forecast:KEWR': { value: { properties: {} }, writtenAt: Date.now() },
+            'observations:KEWR': { value: fixture('kewr-rising'), writtenAt: Date.now() },
+            station: { stationId: 'KEWR' },
+        },
+    })
+
+    assert.deepEqual(texts, [
+        { size: 16, text: '74' },
+        { size: 32, text: '74' },
+    ])
+    assert.deepEqual(action.icons.at(-1), { imageData: { 16: 'raster-16', 32: 'raster-32' } })
 })

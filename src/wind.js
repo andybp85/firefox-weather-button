@@ -1,13 +1,8 @@
 const COMPASS_POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
 const DEGREES_PER_POINT = 360 / COMPASS_POINTS.length
 
-// The speed at which a steady wind is worth the toolbar button's bottom band on its own. It is
-// roughly where wind stops being background and starts being something you dress for, and it is
-// the small-craft advisory's own neighbourhood. A gust promotes the wind at any speed.
-export const NOTABLE_KNOTS = 15
-
 // A gust this far over the sustained wind is the wind you dress for, so it takes the button's
-// colour. An absent gustKnots makes the subtraction NaN and NaN compares false, so the
+// ring colour. An absent gustKnots makes the subtraction NaN and NaN compares false, so the
 // sustained speed wins with no guard of its own: the arithmetic is the guard.
 const GUST_MARGIN_KNOTS = 10
 
@@ -51,12 +46,6 @@ export const toWind = ({ wdir, wgst, wspd }) => {
         state: 'measured',
     }
 }
-
-const isBrisk = ({ gustKnots, knots }) => gustKnots !== undefined || knots >= NOTABLE_KNOTS
-
-// Whether the wind has earned the toolbar button's bottom band from the pressure trend. Calm
-// and unreported never do: an icon that reorganises itself to announce no wind is noise.
-export const isNotable = wind => (wind.state === 'measured' ? isBrisk(wind) : false)
 
 // The speed the button colours itself by: the sustained wind, unless the gust is far enough
 // over it to be the reading that matters.

@@ -298,7 +298,7 @@ const coordinatesOf = element =>
     Object.fromEntries(['x1', 'x2', 'y1', 'y2'].map(name => [name, Math.round(Number(element.getAttribute(name)) * 100) / 100]))
 
 test('render wires the plot shaft to point at where the wind comes from', () => {
-    // The station-model convention, and the opposite of the toolbar button's dart: a north wind
+    // The station-model convention, which the toolbar button's bead now shares too: a north wind
     // puts the shaft above the station. Read as all four coordinates because the wiring this
     // checks is windBarbs' from/to reaching the right pair of attributes.
     const [shaft] = plotOf({
