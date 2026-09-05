@@ -19,7 +19,8 @@ In every other case it takes the force of the sustained wind. The face does not 
 tooltip and the popup do.
 
 Three winds have no bearing to mark. Calm air draws a thin ring in the force 0 colour and no
-bead. A wind the station reports as variable draws a thick ring in its force colour and no bead.
+bead. A wind the station reports as variable, or reports a speed with no bearing at all, draws a
+thick ring in its force colour and no bead.
 When nobody measured the wind, there is no ring at all.
 
 The 3-hour barometric pressure trend is not on the face. It was too small to read there. The

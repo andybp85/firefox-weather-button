@@ -107,10 +107,13 @@ const windColour = wind => BEAUFORT[beaufortForce(wind.state === 'calm' ? 0 : an
 const drawWind = ({ context, unit, wind }) => {
     if (wind.state === 'unreported') return
 
-    const colour = windColour(wind)
-    if (wind.state === 'calm') return drawRing({ colour, context, stroke: FACE_GEOMETRY.light, unit })
-    if (wind.bearingDegrees === undefined) return drawRing({ colour, context, stroke: FACE_GEOMETRY.heavy, unit })
+    if (wind.state === 'calm') return drawRing({ colour: windColour(wind), context, stroke: FACE_GEOMETRY.light, unit })
+    // Before the bearing test, so a state that is none of the three throws whether or not it
+    // carries a bearing, instead of passing for a VRB wind when it happens to lack one.
     if (wind.state !== 'measured') throw new Error(`cannot draw an unknown wind state: ${wind.state}`)
+
+    const colour = windColour(wind)
+    if (wind.bearingDegrees === undefined) return drawRing({ colour, context, stroke: FACE_GEOMETRY.heavy, unit })
 
     drawRing({ colour, context, stroke: FACE_GEOMETRY.light, unit })
     drawBead({ bearingDegrees: wind.bearingDegrees, colour, context, unit })

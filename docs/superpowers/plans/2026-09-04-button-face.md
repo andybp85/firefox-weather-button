@@ -431,7 +431,7 @@ export const drawButtonIcon = ({ context, dewpointFahrenheit, size, temperatureF
 - [ ] **Step 5: Run the tests to see them pass**
 
 Run: `node --test test/button-icon.test.js`
-Expected: PASS, 13 tests.
+Expected: PASS, 12 tests.
 
 - [ ] **Step 6: Run the whole suite and the gates**
 

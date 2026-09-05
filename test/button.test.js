@@ -78,6 +78,24 @@ test('the tooltip words the wind on every path, including the ones the face draw
     assert.match(await titleFor({ wdir: undefined, wspd: undefined }), /wind unreported$/)
 })
 
+// The calm case above proves the wind reaches paintIcon at all; this proves a measured one
+// arrives with its bearing, gust, and speed intact, since the face draws all three.
+test('the button hands paintIcon a bearing-carrying wind whole', async () => {
+    const series = fixture('kewr-rising')
+    const { fetch } = stubFetch({
+        'https://aviationweather.gov': [{ ...series[0], wdir: 320, wgst: 27, wspd: 18 }, ...series.slice(1)],
+    })
+    const { painted } = await run({ fetch, stationId: 'KEWR' })
+
+    assert.deepEqual(painted, [
+        {
+            dewpointFahrenheit: 58,
+            temperatureFahrenheit: 74,
+            wind: { bearingDegrees: 320, direction: 'NW', gustKnots: 27, knots: 18, state: 'measured' },
+        },
+    ])
+})
+
 test('the button says so rather than showing a colour when no station is configured yet', async () => {
     const { calls, fetch } = stubFetch({})
     const { action, painted } = await run({ fetch, stationId: undefined })
