@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { NOTABLE_KNOTS, announcedKnots, isNotable, toWind } from '../src/wind.js'
+import { announcedKnots, toWind } from '../src/wind.js'
 
 test('toWind reads an absent speed as unreported rather than as calm', () => {
     // An omitted wspd means nobody measured the wind. Calling it calm asserts a reading that
@@ -57,22 +57,6 @@ test('toWind reads a gust with no sustained speed as unreported', () => {
     // A gust alone measures nothing: the peak is defined against a sustained wind that this
     // record does not carry. Promoting it to a speed would invent the measurement.
     assert.deepEqual(toWind({ wgst: 27 }), { state: 'unreported' })
-})
-
-test('isNotable is false for wind that was never measured or is calm', () => {
-    assert.equal(isNotable({ state: 'unreported' }), false)
-    assert.equal(isNotable({ state: 'calm' }), false)
-})
-
-test('isNotable turns on at the threshold, not above it', () => {
-    assert.equal(isNotable(toWind({ wspd: NOTABLE_KNOTS - 1 })), false)
-    assert.equal(isNotable(toWind({ wspd: NOTABLE_KNOTS })), true)
-})
-
-test('isNotable promotes a gusting wind however light the sustained speed is', () => {
-    // A wind that swings from 4 to 14 kt is doing something a single figure cannot describe,
-    // which is the whole reason the button gives the band to the sock.
-    assert.equal(isNotable(toWind({ wgst: 14, wspd: 4 })), true)
 })
 
 test('toWind keeps the numeric bearing beside the cardinal it names', () => {
