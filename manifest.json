@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Weather Button",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Temperature, dewpoint comfort, and wind on the toolbar; pressure trend, cloud base, and thunder probability in the popup. From the National Weather Service.",
     "browser_specific_settings": {
         "gecko": {
