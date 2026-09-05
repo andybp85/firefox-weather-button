@@ -7,6 +7,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- The toolbar button's face. It now shows the temperature in figures on a disc filled with the
+  dewpoint's comfort colour, ringed by the wind in its Beaufort colour with a bead on the ring
+  where the wind comes from. Every measured wind draws the ring: calm is a thin ring with no
+  bead, a variable wind a thick ring with no bead, and a wind nobody measured no ring. The gust
+  rule is unchanged: the ring takes the gust's force when the gust is more than 10 kt over the
+  sustained wind.
+- The button's tooltip leads with the temperature and still names the dewpoint, its comfort
+  band, the pressure trend, and the wind.
+
+### Removed
+
+- From the button's face: the dewpoint figures, the comfort band along the foot, the pressure
+  trend notch, the compass dart, and the 15 kt threshold below which the wind was not drawn.
+  The dewpoint and the trend stay in the tooltip and on the popup.
+
 ## [0.3.0] - 2026-09-04
 
 ### Added
